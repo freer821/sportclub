@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}交易记录{% endblock %}
+
+{% block extra_css %}
+<style>
+    .history-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .transaction-row {
+        display: grid;
+        grid-template-columns: 180px 100px 1fr 120px;
+        align-items: center;
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background var(--transition-fast);
+    }
+
+    .transaction-row:last-child {
+        border-bottom: none;
+    }
+
+    .transaction-row:hover {
+        background: var(--bg-card-hover);
+    }
+
+    .transaction-header {
+        background: var(--bg-secondary);
+        padding: 16px 28px;
+        border-bottom: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: 180px 100px 1fr 120px;
+        gap: 16px;
+    }
+
+    .transaction-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .transaction-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .transaction-amount {
+        text-align: right;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.3rem;
+    }
+
+    .transaction-amount.positive {
+        color: #22c55e;
+    }
+
+    .transaction-amount.negative {
+        color: var(--accent-red);
+    }
+
+    @media (max-width: 767.98px) {
+        .transaction-header {
+            display: none;
+        }
+
+        .transaction-row {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .transaction-row > div {
+            width: 100%;
+        }
+
+        .transaction-amount {
+            text-align: left;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">📜 交易记录</h1>
+    <p class="page-subtitle">查看您的所有账户交易历史</p>
+</div>
+
+<div class="history-card animate-in">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h2 class="card-title">全部记录</h2>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">{{ transactions|length }} 条记录</span>
+    </div>
+    <div>
+        {% if transactions %}
+            <div class="transaction-header">
+                <span>日期</span>
+                <span>类型</span>
+                <span>说明</span>
+                <span style="text-align: right;">金额</span>
+            </div>
+
+            {% for tx in transactions %}
+            <div class="transaction-row">
+                <div class="transaction-date">{{ tx.created_at|date:"Y年m月d日 H:i" }}</div>
+                <div>
+                    {% if tx.transaction_type == 'recharge' %}
+                        <span class="badge badge-success">充值</span>
+                    {% elif tx.transaction_type == 'event_fee' %}
+                        <span class="badge badge-danger">活动费</span>
+                    {% else %}
+                        <span class="badge badge-warning">退款</span>
+                    {% endif %}
+                </div>
+                <div>{{ tx.description }}</div>
+                <div class="transaction-amount {% if tx.transaction_type == 'recharge' or tx.transaction_type == 'refund' %}positive{% else %}negative{% endif %}">
+                    {% if tx.transaction_type == 'recharge' or tx.transaction_type == 'refund' %}+{% else %}-{% endif %}{{ tx.amount }}EUR
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📜</div>
+                <h3 class="empty-state-title">暂无交易记录</h3>
+                <p class="empty-state-desc">您的账户交易历史将显示在这里</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline">← 返回个人中心</a>
+</div>
+{% endblock %}

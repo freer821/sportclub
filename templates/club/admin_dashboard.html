@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}管理后台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-hero {
+        background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 48px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .admin-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+    }
+
+    .admin-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(230, 57, 70, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .admin-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 3rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (max-width: 991.98px) {
+        .admin-hero {
+            padding: 32px 24px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-hero animate-in">
+    <h1 class="admin-title">🏀 管理后台</h1>
+    <p class="admin-subtitle">管理会员、活动和账户设置</p>
+</div>
+
+<div class="stats-grid animate-in delay-1">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ all_users|length }}+</div>
+        <div class="stat-label">注册会员</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">{{ upcoming_events|length }}</div>
+        <div class="stat-label">即将进行的活动</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">{{ site_settings.default_event_price }}€</div>
+        <div class="stat-label">默认活动费用</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💎</div>
+        <div class="stat-value">€{{ total_balance|default:"0" }}</div>
+        <div class="stat-label">总余额</div>
+    </div>
+</div>
+
+<div class="actions-grid animate-in delay-2">
+    <div class="action-card">
+        <div class="action-icon">💰</div>
+        <h3 class="action-title">会员充值</h3>
+        <p class="action-desc">为会员账户添加余额</p>
+        <a href="{% url 'admin_recharge' %}" class="btn btn-primary">进入</a>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">📅</div>
+        <h3 class="action-title">活动管理</h3>
+        <p class="action-desc">创建和管理篮球活动</p>
+        <a href="{% url 'create_event' %}" class="btn btn-primary">创建活动</a>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">⚙️</div>
+        <h3 class="action-title">费用设置</h3>
+        <p class="action-desc">修改默认活动费用</p>
+        <a href="/admin/club/sitesettings/" class="btn btn-outline">修改</a>
+    </div>
+</div>
+
+<div class="row animate-in delay-3">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h3 class="card-title">👥 会员列表</h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% for user_profile in all_users %}
+                <div class="d-flex align-items-center justify-content-between" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <strong>{{ user_profile.user.username }}</strong>
+                        <div class="text-muted" style="font-size: 0.85rem;">{{ user_profile.user.get_full_name|default:"-" }}</div>
+                    </div>
+                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent-gold);">
+                        {{ user_profile.balance }}EUR
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h3 class="card-title">📜 最近交易</h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% for tx in recent_transactions %}
+                <div class="d-flex align-items-center justify-content-between" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <strong>{{ tx.user.username }}</strong>
+                        <div>
+                            {% if tx.transaction_type == 'recharge' %}
+                                <span class="badge badge-success">充值</span>
+                            {% elif tx.transaction_type == 'event_fee' %}
+                                <span class="badge badge-danger">活动费</span>
+                            {% else %}
+                                <span class="badge badge-warning">退款</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; {% if tx.transaction_type == 'recharge' %}color: #22c55e;{% else %}color: var(--accent-red);{% endif %}">
+                            {{ tx.amount }}EUR
+                        </span>
+                        <div class="text-muted" style="font-size: 0.75rem;">{{ tx.created_at|date:"m-d H:i" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card animate-in delay-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title">📅 即将进行的活动</h3>
+        <a href="{% url 'create_event' %}" class="btn btn-primary btn-sm">创建</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if upcoming_events %}
+            {% for event in upcoming_events %}
+            <div class="d-flex align-items-center justify-content-between" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <strong>{{ event.title }}</strong>
+                    <div class="text-muted" style="font-size: 0.85rem;">{{ event.date|date:"Y年m月d日 H:i" }} | {{ event.location }}</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-weight: 600;">{{ event.participant_count }}/{{ event.max_participants }} 人</span>
+                    <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">参与者</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <p>暂无活动</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

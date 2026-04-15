@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}会员充值 - 管理后台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recharge-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .member-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 100px 200px;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-color);
+        gap: 16px;
+    }
+
+    .member-row:last-child {
+        border-bottom: none;
+    }
+
+    .member-row-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 100px 200px;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .member-row-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .member-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .member-name {
+        font-weight: 600;
+    }
+
+    .member-email {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .member-balance {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.3rem;
+        color: var(--accent-gold);
+    }
+
+    .recharge-form {
+        display: flex;
+        gap: 8px;
+    }
+
+    .recharge-input {
+        width: 120px;
+        padding: 10px 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .recharge-input:focus {
+        outline: none;
+        border-color: var(--accent-red);
+    }
+
+    .transaction-row {
+        display: grid;
+        grid-template-columns: 60px 1fr 180px 140px 100px;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-color);
+        gap: 16px;
+    }
+
+    .transaction-row:last-child {
+        border-bottom: none;
+    }
+
+    .transaction-row-header {
+        display: grid;
+        grid-template-columns: 60px 1fr 180px 140px 100px;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .transaction-row-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .tx-id {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        color: var(--text-muted);
+    }
+
+    .tx-form {
+        display: flex;
+        gap: 8px;
+    }
+
+    .tx-input {
+        width: 100px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .tx-input:focus {
+        outline: none;
+        border-color: var(--accent-gold);
+    }
+
+    @media (max-width: 991.98px) {
+        .member-row, .member-row-header,
+        .transaction-row, .transaction-row-header {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .member-row > div, .transaction-row > div {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">💰 会员充值</h1>
+        <p class="page-subtitle">为会员账户添加余额</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline">返回管理后台</a>
+</div>
+
+<div class="recharge-card animate-in">
+    <div class="card-header">
+        <h2 class="card-title">👥 会员列表</h2>
+    </div>
+    <div class="card-body">
+        <div class="member-row-header">
+            <span>用户名</span>
+            <span>邮箱</span>
+            <span>当前余额</span>
+            <span></span>
+            <span>操作</span>
+        </div>
+        {% for user in users %}
+        <div class="member-row">
+            <div class="member-info">
+                <span class="member-name">{{ user.username }}</span>
+                <span class="member-email">{{ user.get_full_name|default:"-" }}</span>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
+            <div class="member-balance">{{ user.profile.balance }}EUR</div>
+            <div></div>
+            <form method="post" class="recharge-form">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="number" name="amount" class="recharge-input" placeholder="金额" step="0.01" min="1" required>
+                <button type="submit" class="btn btn-primary">充值</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="recharge-card animate-in delay-1">
+    <div class="card-header">
+        <h2 class="card-title">📜 充值记录列表</h2>
+    </div>
+    <div class="card-body">
+        {% if recharge_transactions %}
+            <div class="transaction-row-header">
+                <span>ID</span>
+                <span>会员</span>
+                <span>金额</span>
+                <span>时间</span>
+                <span>操作</span>
+            </div>
+            {% for tx in recharge_transactions %}
+            <div class="transaction-row">
+                <div class="tx-id">#{{ tx.id }}</div>
+                <div style="font-weight: 600;">{{ tx.user.username }}</div>
+                <div>
+                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="tx-form">
+                        {% csrf_token %}
+                        <input type="number" name="amount" class="tx-input" value="{{ tx.amount }}" step="0.01" min="0.01" required>
+                        <button type="submit" class="btn btn-outline btn-sm">修改</button>
+                    </form>
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                <div>
+                    <form method="post" action="{% url 'delete_admin_recharge' tx.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);">删除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📜</div>
+                <p>暂无充值记录</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

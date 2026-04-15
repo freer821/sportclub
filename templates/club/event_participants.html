@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}活动参与者{% endblock %}
+
+{% block extra_css %}
+<style>
+    .participants-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .participant-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 180px;
+        align-items: center;
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background var(--transition-fast);
+    }
+
+    .participant-row:last-child {
+        border-bottom: none;
+    }
+
+    .participant-row:hover {
+        background: var(--bg-card-hover);
+    }
+
+    .participant-row-header {
+        background: var(--bg-secondary);
+        padding: 16px 28px;
+        border-bottom: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 180px;
+        gap: 16px;
+    }
+
+    .participant-row-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .participant-name {
+        font-weight: 600;
+    }
+
+    .participant-username {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .participant-email {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .participant-time {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 767.98px) {
+        .participant-row, .participant-row-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .participant-row > div {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between" style="margin-bottom: 32px;">
+    <div>
+        <h1 class="page-title">👥 活动参与者</h1>
+        <p class="page-subtitle">查看活动报名详情</p>
+    </div>
+    <a href="{% url 'event_list' %}" class="btn btn-outline">返回活动列表</a>
+</div>
+
+<div class="participants-card animate-in">
+    <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="card-title">{{ event.title }}</h2>
+            <span class="badge badge-danger">{{ event.participant_count }} 人</span>
+        </div>
+        <p class="card-subtitle">📅 {{ event.date|date:"Y年m月d日 H:i" }} | 📍 {{ event.location }}</p>
+    </div>
+    <div>
+        {% if participants %}
+            <div class="participant-row-header">
+                <span>姓名</span>
+                <span>用户名</span>
+                <span>邮箱</span>
+                <span>报名时间</span>
+            </div>
+            {% for p in participants %}
+            <div class="participant-row">
+                <div>
+                    <div class="participant-name">{{ p.user.get_full_name|default:p.user.first_name|default:"-" }}</div>
+                </div>
+                <div class="participant-username">{{ p.user.username }}</div>
+                <div class="participant-email">{{ p.user.email|default:"-" }}</div>
+                <div class="participant-time">{{ p.registered_at|date:"Y年m月d日 H:i" }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🏀</div>
+                <h3 class="empty-state-title">暂无参与者</h3>
+                <p class="empty-state-desc">还没有人报名此活动</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

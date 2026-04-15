@@ -1,0 +1,95 @@
+# Chinese translations
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Home"
+msgstr "首页"
+
+msgid "Dashboard"
+msgstr "个人中心"
+
+msgid "Events"
+msgstr "活动"
+
+msgid "History"
+msgstr "记录"
+
+msgid "Login"
+msgstr "登录"
+
+msgid "Logout"
+msgstr "退出"
+
+msgid "Register"
+msgstr "注册"
+
+msgid "Account Balance"
+msgstr "账户余额"
+
+msgid "Recharge"
+msgstr "充值"
+
+msgid "Join Event"
+msgstr "参加活动"
+
+msgid "Leave Event"
+msgstr "取消活动"
+
+msgid "Transaction History"
+msgstr "交易记录"
+
+msgid "Participants"
+msgstr "参与者"
+
+msgid "Create Event"
+msgstr "创建活动"
+
+msgid "Upcoming Events"
+msgstr "即将进行的活动"
+
+msgid "My Events"
+msgstr "我的活动"
+
+msgid "Available Events"
+msgstr "可参加的活动"
+
+msgid "Join"
+msgstr "报名"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Price"
+msgstr "费用"
+
+msgid "Location"
+msgstr "地点"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Participants Count"
+msgstr "参与人数"
+
+msgid "Recharge Successful"
+msgstr "充值成功"
+
+msgid "Successfully joined"
+msgstr "成功参加"
+
+msgid "Successfully left"
+msgstr "成功退出"
+
+msgid "Insufficient balance"
+msgstr "余额不足"
+
+msgid "Event is full"
+msgstr "活动已满"
+
+msgid "Registration successful"
+msgstr "注册成功"
+
+msgid "Welcome to the basketball club"
+msgstr "欢迎加入篮球俱乐部"

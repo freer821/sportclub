@@ -1,0 +1,18 @@
+[project]
+name = "basketball-club"
+version = "0.1.0"
+description = "Makkabi Frankfurt Basketball Club Website"
+requires-python = ">=3.10"
+dependencies = [
+    "Django>=4.2,<5.0",
+    "django-crispy-forms>=2.0",
+    "crispy-bootstrap5>=0.7",
+    "psycopg2-binary>=2.9",
+]
+
+[tooluv]
+dev-dependencies = [
+    "ruff",
+    "mypy",
+    "django-stubs",
+]

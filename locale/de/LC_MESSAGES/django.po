@@ -1,0 +1,95 @@
+# German translations
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Home"
+msgstr "Startseite"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Events"
+msgstr "Veranstaltungen"
+
+msgid "History"
+msgstr "Verlauf"
+
+msgid "Login"
+msgstr "Anmelden"
+
+msgid "Logout"
+msgstr "Abmelden"
+
+msgid "Register"
+msgstr "Registrieren"
+
+msgid "Account Balance"
+msgstr "Kontostand"
+
+msgid "Recharge"
+msgstr "Aufladen"
+
+msgid "Join Event"
+msgstr " teilnehmen"
+
+msgid "Leave Event"
+msgstr "Absagen"
+
+msgid "Transaction History"
+msgstr "Transaktionsverlauf"
+
+msgid "Participants"
+msgstr "Teilnehmer"
+
+msgid "Create Event"
+msgstr "Veranstaltung erstellen"
+
+msgid "Upcoming Events"
+msgstr "Kommende Veranstaltungen"
+
+msgid "My Events"
+msgstr "Meine Veranstaltungen"
+
+msgid "Available Events"
+msgstr "Verfügbare Veranstaltungen"
+
+msgid "Join"
+msgstr "Teilnehmen"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Price"
+msgstr "Preis"
+
+msgid "Location"
+msgstr "Ort"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Participants Count"
+msgstr "Teilnehmerzahl"
+
+msgid "Recharge Successful"
+msgstr "Erfolgreich aufgeladen"
+
+msgid "Successfully joined"
+msgstr "Erfolgreich teilgenommen"
+
+msgid "Successfully left"
+msgstr "Erfolgreich abgesagt"
+
+msgid "Insufficient balance"
+msgstr "Unzureichendes Guthaben"
+
+msgid "Event is full"
+msgstr "Veranstaltung ist voll"
+
+msgid "Registration successful"
+msgstr "Registrierung erfolgreich"
+
+msgid "Welcome to the basketball club"
+msgstr "Willkommen im Basketballverein"
