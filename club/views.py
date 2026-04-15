@@ -125,6 +125,8 @@ def admin_recharge(request):
         if form.is_valid():
             user_id = form.cleaned_data['user_id']
             amount = form.cleaned_data['amount']
+            source = form.cleaned_data.get('source', 'other')
+            recharge_time = form.cleaned_data.get('recharge_time')
             target_user = User.objects.filter(id=user_id, is_staff=False).first()
             if target_user is None:
                 messages.error(request, 'Target member does not exist.')
@@ -133,15 +135,17 @@ def admin_recharge(request):
                 profile = _ensure_profile(target_user)
                 profile.balance += amount
                 profile.save(update_fields=['balance'])
+                source_display = dict(form.fields['source'].choices).get(source, source)
                 Transaction.objects.create(
                     user=target_user,
                     transaction_type='recharge',
                     amount=amount,
-                    description=f'Admin recharge by {request.user.username}'
+                    description=f'Admin recharge by {request.user.username} ({source_display})',
+                    created_at=recharge_time if recharge_time else timezone.now()
                 )
             logger.info(f"Admin {request.user.username} recharged {amount}EUR to user {target_user.username}")
             messages.success(request, f'Successfully recharged {amount}EUR to {target_user.username}')
-            return redirect('dashboard')
+            return redirect('admin_recharge')
     else:
         form = AdminRechargeForm()
 
@@ -203,6 +207,45 @@ def update_admin_recharge(request, transaction_id):
         request,
         f'Updated recharge #{recharge_tx.id}: {old_amount}EUR -> {new_amount}EUR.',
     )
+    return redirect('admin_recharge')
+
+
+@login_required
+@require_POST
+def quick_recharge(request, user_id):
+    if not request.user.is_staff:
+        messages.error(request, 'Only administrators can perform quick recharges.')
+        return redirect('dashboard')
+
+    target_user = User.objects.filter(id=user_id, is_staff=False).first()
+    if target_user is None:
+        messages.error(request, 'Target member does not exist.')
+        return redirect('admin_recharge')
+
+    amount_raw = request.POST.get('amount', '').strip()
+    try:
+        amount = decimal.Decimal(amount_raw)
+    except decimal.InvalidOperation:
+        messages.error(request, 'Invalid amount.')
+        return redirect('admin_recharge')
+
+    if amount <= 0:
+        messages.error(request, 'Amount must be greater than 0.')
+        return redirect('admin_recharge')
+
+    with transaction.atomic():
+        profile = _ensure_profile(target_user)
+        profile.balance += amount
+        profile.save(update_fields=['balance'])
+        Transaction.objects.create(
+            user=target_user,
+            transaction_type='recharge',
+            amount=amount,
+            description=f'Admin recharge by {request.user.username}'
+        )
+
+    logger.info(f"Admin {request.user.username} quick recharged {amount}EUR to user {target_user.username}")
+    messages.success(request, f'Successfully recharged {amount}EUR to {target_user.username}')
     return redirect('admin_recharge')
 
 

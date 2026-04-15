@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 {% block title %}会员充值 - 管理后台{% endblock %}
 
@@ -63,26 +62,6 @@
         color: var(--accent-gold);
     }
 
-    .recharge-form {
-        display: flex;
-        gap: 8px;
-    }
-
-    .recharge-input {
-        width: 120px;
-        padding: 10px 14px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        color: var(--text-primary);
-        font-size: 0.95rem;
-    }
-
-    .recharge-input:focus {
-        outline: none;
-        border-color: var(--accent-red);
-    }
-
     .transaction-row {
         display: grid;
         grid-template-columns: 60px 1fr 180px 140px 100px;
@@ -138,6 +117,131 @@
         border-color: var(--accent-gold);
     }
 
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+    }
+
+    .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: scale(0.9);
+        transition: transform var(--transition-normal);
+    }
+
+    .modal-overlay.show .modal-card {
+        transform: scale(1);
+    }
+
+    .modal-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-secondary);
+    }
+
+    .modal-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color var(--transition-fast);
+    }
+
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 28px;
+    }
+
+    .modal-footer {
+        padding: 20px 28px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        background: var(--bg-secondary);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .source-options {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .source-option {
+        display: none;
+    }
+
+    .source-option + label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 12px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-weight: 500;
+    }
+
+    .source-option:checked + label {
+        border-color: var(--accent-gold);
+        background: rgba(255, 214, 10, 0.1);
+    }
+
+    .source-option + label:hover {
+        border-color: var(--accent-gold);
+    }
+
+    .source-icon {
+        font-size: 1.5rem;
+    }
+
     @media (max-width: 991.98px) {
         .member-row, .member-row-header,
         .transaction-row, .transaction-row-header {
@@ -158,7 +262,9 @@
         <h1 class="page-title">💰 会员充值</h1>
         <p class="page-subtitle">为会员账户添加余额</p>
     </div>
-    <a href="{% url 'dashboard' %}" class="btn btn-outline">返回管理后台</a>
+    <button class="btn btn-primary" onclick="openRechargeModal()">
+        ➕ 充值
+    </button>
 </div>
 
 <div class="recharge-card animate-in">
@@ -171,7 +277,7 @@
             <span>邮箱</span>
             <span>当前余额</span>
             <span></span>
-            <span>操作</span>
+            <span>快速充值</span>
         </div>
         {% for user in users %}
         <div class="member-row">
@@ -182,11 +288,10 @@
             <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
             <div class="member-balance">{{ user.profile.balance }}EUR</div>
             <div></div>
-            <form method="post" class="recharge-form">
+            <form method="post" action="{% url 'quick_recharge' user.id %}" class="recharge-form">
                 {% csrf_token %}
-                <input type="hidden" name="user_id" value="{{ user.id }}">
-                <input type="number" name="amount" class="recharge-input" placeholder="金额" step="0.01" min="1" required>
-                <button type="submit" class="btn btn-primary">充值</button>
+                <input type="number" name="amount" class="recharge-input" placeholder="金额" step="0.01" min="1" required style="width: 100px; padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.95rem;">
+                <button type="submit" class="btn btn-primary btn-sm">充值</button>
             </form>
         </div>
         {% endfor %}
@@ -234,4 +339,95 @@
         {% endif %}
     </div>
 </div>
+
+<div class="modal-overlay" id="rechargeModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">💰 会员充值</h3>
+            <button class="modal-close" onclick="closeRechargeModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form method="post" action="{% url 'admin_recharge' %}" id="rechargeForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">选择会员</label>
+                    <select name="user_id" id="id_user_id" class="form-control" required>
+                        <option value="">请选择会员...</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }} ({{ user.get_full_name|default:user.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">充值金额</label>
+                    <input type="number" name="amount" id="id_amount" class="form-control" step="0.01" min="1" placeholder="输入金额" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">支付方式</label>
+                    <div class="source-options">
+                        <input type="radio" name="source" id="source_wechat" value="wechat" class="source-option" checked>
+                        <label for="source_wechat">
+                            <span class="source-icon">💳</span>
+                            <span>微信</span>
+                        </label>
+                        <input type="radio" name="source" id="source_paypal" value="paypal" class="source-option">
+                        <label for="source_paypal">
+                            <span class="source-icon">🅿️</span>
+                            <span>PayPal</span>
+                        </label>
+                        <input type="radio" name="source" id="source_cash" value="cash" class="source-option">
+                        <label for="source_cash">
+                            <span class="source-icon">💵</span>
+                            <span>现金</span>
+                        </label>
+                        <input type="radio" name="source" id="source_other" value="other" class="source-option">
+                        <label for="source_other">
+                            <span class="source-icon">📋</span>
+                            <span>其他</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">充值时间 <span style="color: var(--text-muted); font-weight: normal;">(留空使用当前时间)</span></label>
+                    <input type="datetime-local" name="recharge_time" id="id_recharge_time" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeRechargeModal()">取消</button>
+                <button type="submit" class="btn btn-primary">确认充值</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openRechargeModal() {
+    document.getElementById('rechargeModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeRechargeModal() {
+    document.getElementById('rechargeModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('rechargeModal');
+    if (e.target === modal) {
+        closeRechargeModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeRechargeModal();
+    }
+});
+</script>
 {% endblock %}

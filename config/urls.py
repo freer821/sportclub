@@ -16,6 +16,7 @@ urlpatterns += i18n_patterns(
     path('dashboard/', views.dashboard, name='dashboard'),
     path('recharge/', views.recharge, name='recharge'),
     path('member/recharge/', views.admin_recharge, name='admin_recharge'),
+    path('member/recharge/<int:user_id>/quick/', views.quick_recharge, name='quick_recharge'),
     path('member/recharge/<int:transaction_id>/update/', views.update_admin_recharge, name='update_admin_recharge'),
     path('member/recharge/<int:transaction_id>/delete/', views.delete_admin_recharge, name='delete_admin_recharge'),
     path('history/', views.history, name='history'),

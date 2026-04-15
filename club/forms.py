@@ -39,3 +39,12 @@ class RechargeForm(forms.Form):
 class AdminRechargeForm(forms.Form):
     user_id = forms.IntegerField(widget=forms.HiddenInput())
     amount = forms.DecimalField(max_digits=10, decimal_places=2, min_value=1.0)
+    source = forms.ChoiceField(
+        choices=[('wechat', 'WeChat'), ('paypal', 'PayPal'), ('cash', '现金'), ('other', '其他')],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    recharge_time = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        help_text='留空则使用当前时间'
+    )
