@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}活动管理{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+    }
+
+    .event-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .event-row {
+        display: grid;
+        grid-template-columns: 2fr 0.9fr 0.7fr 0.7fr 0.8fr 1fr 150px;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+        gap: 16px;
+    }
+
+    .event-row:last-child {
+        border-bottom: none;
+    }
+
+    .event-row-header {
+        background: var(--bg-secondary);
+        display: grid;
+        grid-template-columns: 2fr 0.9fr 0.7fr 0.7fr 0.8fr 1fr 150px;
+        gap: 16px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .event-row-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .event-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .event-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .event-location {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .event-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .event-price {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.2rem;
+        color: var(--accent-gold);
+    }
+
+    .event-status {
+        text-align: center;
+    }
+
+    .event-status .badge {
+        display: inline-block;
+    }
+
+    .event-status.full {
+        color: var(--accent-red);
+    }
+
+    .event-status.open {
+        color: #22c55e;
+    }
+
+    .event-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .empty-events {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    @media (max-width: 991.98px) {
+        .event-row, .event-row-header {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .event-row > div {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📅 活动管理</h1>
+        <p class="page-subtitle">管理所有篮球活动</p>
+    </div>
+    <a href="{% url 'create_event' %}" class="btn btn-primary">➕ 创建活动</a>
+</div>
+
+<div class="event-card animate-in">
+    <div class="event-row-header">
+        <span>活动</span>
+        <span>日期</span>
+        <span>开始</span>
+        <span>结束</span>
+        <span>费用</span>
+        <span style="text-align: center;">状态</span>
+        <span style="text-align: right;">操作</span>
+    </div>
+    {% for event in events %}
+    <div class="event-row">
+        <div class="event-info">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-location">{{ event.location }}</span>
+        </div>
+        <div class="event-date">{{ event.date|date:"Y-m-d" }}</div>
+        <div class="event-date">{{ event.date|date:"H:i" }}</div>
+        <div class="event-date">{% if event.end_time %}{{ event.end_time|date:"H:i" }}{% else %}-{% endif %}</div>
+        <div class="event-price">{{ event.event_price }}EUR</div>
+        <div class="event-status">
+            {% if event.is_full %}
+            <span class="badge badge-danger">已满 {{ event.participant_count }}/{{ event.max_participants }}</span>
+            {% else %}
+            <span class="badge badge-success">{{ event.participant_count }}/{{ event.max_participants }}</span>
+            {% endif %}
+        </div>
+        <div class="event-actions">
+            <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">参与者</a>
+            <form method="post" action="{% url 'admin_event_delete' event.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);" onclick="return confirm('确定要删除活动 {{ event.title }} 吗？')">删除</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-events">
+        <div style="font-size: 4rem; margin-bottom: 16px; opacity: 0.5;">📅</div>
+        <p style="color: var(--text-muted);">暂无活动</p>
+        <a href="{% url 'create_event' %}" class="btn btn-primary mt-3">创建第一个活动</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

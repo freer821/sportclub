@@ -1,4 +1,5 @@
 from django.urls import path, include
+from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.conf.urls.i18n import i18n_patterns
 from club import views
@@ -15,10 +16,15 @@ urlpatterns += i18n_patterns(
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('recharge/', views.recharge, name='recharge'),
-    path('member/recharge/', views.admin_recharge, name='admin_recharge'),
-    path('member/recharge/<int:user_id>/quick/', views.quick_recharge, name='quick_recharge'),
-    path('member/recharge/<int:transaction_id>/update/', views.update_admin_recharge, name='update_admin_recharge'),
-    path('member/recharge/<int:transaction_id>/delete/', views.delete_admin_recharge, name='delete_admin_recharge'),
+    path('admin/members/', views.admin_members, name='admin_members'),
+    path('admin/members/<int:user_id>/', views.admin_member_edit, name='admin_member_edit'),
+    path('admin/recharge/', views.admin_recharge, name='admin_recharge'),
+    path('admin/recharge/<int:user_id>/quick/', views.quick_recharge, name='quick_recharge'),
+    path('admin/recharge/<int:transaction_id>/approve/', views.approve_admin_recharge, name='approve_admin_recharge'),
+    path('admin/recharge/<int:transaction_id>/update/', views.update_admin_recharge, name='update_admin_recharge'),
+    path('admin/recharge/<int:transaction_id>/delete/', views.delete_admin_recharge, name='delete_admin_recharge'),
+    path('admin/events/', views.admin_events, name='admin_events'),
+    path('admin/events/<int:event_id>/delete/', views.admin_event_delete, name='admin_event_delete'),
     path('history/', views.history, name='history'),
     path('events/', views.event_list, name='event_list'),
     path('events/<int:event_id>/join/', views.join_event, name='join_event'),
@@ -26,5 +32,6 @@ urlpatterns += i18n_patterns(
     path('events/create/', views.create_event, name='create_event'),
     path('events/<int:event_id>/participants/', views.event_participants, name='event_participants'),
     path('api/events/', views.api_events, name='api_events'),
+    path('admin/', admin.site.urls),
     prefix_default_language=False,
 )

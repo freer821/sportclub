@@ -4,6 +4,90 @@
 
 {% block extra_css %}
 <style>
+    .member-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 32px;
+        padding: 28px 32px;
+        background:
+            radial-gradient(circle at top right, rgba(255, 214, 10, 0.12), transparent 30%),
+            linear-gradient(135deg, rgba(230, 57, 70, 0.14), rgba(26, 26, 29, 0.96) 45%);
+        border: 1px solid rgba(255, 214, 10, 0.14);
+        border-radius: var(--radius-lg);
+    }
+
+    .member-identity {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .member-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-gold) 100%);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem;
+        box-shadow: 0 16px 40px rgba(230, 57, 70, 0.25);
+    }
+
+    .member-eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent-gold);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .member-title {
+        margin: 0 0 6px;
+        font-size: 3rem;
+    }
+
+    .member-subtitle {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+
+    .member-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 12px;
+        min-width: 280px;
+    }
+
+    .member-summary-item {
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius-md);
+    }
+
+    .member-summary-label {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .member-summary-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        word-break: break-word;
+    }
+
     .balance-hero {
         background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
         border: 1px solid var(--border-color);
@@ -95,6 +179,26 @@
     }
 
     @media (max-width: 767.98px) {
+        .member-hero {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 24px 20px;
+        }
+
+        .member-identity {
+            align-items: flex-start;
+        }
+
+        .member-title {
+            font-size: 2.2rem;
+        }
+
+        .member-summary {
+            grid-template-columns: 1fr;
+            width: 100%;
+            min-width: 0;
+        }
+
         .dashboard-grid {
             grid-template-columns: 1fr;
         }
@@ -111,9 +215,36 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">🏀 个人中心</h1>
-    <p class="page-subtitle">欢迎回来，管理您的篮球活动</p>
+<div class="member-hero animate-in">
+    <div class="member-identity">
+        <div class="member-avatar">{{ user.username|slice:":1"|upper }}</div>
+        <div>
+            <p class="member-eyebrow">个人中心</p>
+            <h1 class="member-title">{{ user.get_full_name|default:user.username }}</h1>
+            <p class="member-subtitle">
+                @{{ user.username }}
+                {% if user.email %} · {{ user.email }}{% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="member-summary">
+        <div class="member-summary-item">
+            <span class="member-summary-label">身份</span>
+            <span class="member-summary-value">会员</span>
+        </div>
+        <div class="member-summary-item">
+            <span class="member-summary-label">待参加活动</span>
+            <span class="member-summary-value">{{ upcoming_events|length }} 个</span>
+        </div>
+        <div class="member-summary-item">
+            <span class="member-summary-label">已报名活动</span>
+            <span class="member-summary-value">{{ my_events|length }} 个</span>
+        </div>
+        <div class="member-summary-item">
+            <span class="member-summary-label">默认活动费</span>
+            <span class="member-summary-value">{{ event_price }} EUR</span>
+        </div>
+    </div>
 </div>
 
 <div class="balance-hero animate-in">
@@ -136,7 +267,7 @@
                     <li class="event-list-item">
                         <div class="event-info">
                             <div class="event-name">{{ event.title }}</div>
-                            <div class="event-meta">{{ event.date|date:"Y年m月d日 H:i" }} | {{ event.location }}</div>
+                            <div class="event-meta">{{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %} | {{ event.location }}</div>
                         </div>
                         <a href="{% url 'leave_event' event.id %}" class="btn btn-outline btn-sm">取消</a>
                     </li>
@@ -162,7 +293,7 @@
                     <li class="event-list-item">
                         <div class="event-info">
                             <div class="event-name">{{ event.title }}</div>
-                            <div class="event-meta">{{ event.date|date:"Y年m月d日 H:i" }}</div>
+                            <div class="event-meta">{{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %}</div>
                         </div>
                         <a href="{% url 'join_event' event.id %}" class="btn btn-primary btn-sm">报名</a>
                     </li>

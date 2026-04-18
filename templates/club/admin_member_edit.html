@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}编辑会员{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .edit-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .edit-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .edit-body {
+        padding: 28px;
+    }
+
+    .edit-footer {
+        padding: 20px 28px;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        display: flex;
+        gap: 12px;
+    }
+
+    .balance-display {
+        text-align: center;
+        padding: 24px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-sm);
+        margin-bottom: 24px;
+    }
+
+    .balance-amount {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 3rem;
+        color: var(--accent-gold);
+        line-height: 1;
+    }
+
+    .balance-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 8px;
+    }
+
+    .member-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-item {
+        background: var(--bg-secondary);
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container animate-in">
+    <div class="edit-card">
+        <div class="edit-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="card-title">编辑会员</h2>
+                    <p class="card-subtitle">{{ member.username }}</p>
+                </div>
+                <a href="{% url 'admin_members' %}" class="btn btn-outline btn-sm">返回列表</a>
+            </div>
+        </div>
+        <div class="edit-body">
+            <div class="balance-display">
+                <div class="balance-amount">{{ profile.balance }}EUR</div>
+                <div class="balance-label">当前余额</div>
+            </div>
+
+            <div class="member-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ member.profile.balance }}</div>
+                    <div class="stat-label">余额</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ member.participations.count }}</div>
+                    <div class="stat-label">参与活动</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ member.transactions.count }}</div>
+                    <div class="stat-label">交易记录</div>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_balance">
+                <div class="form-group">
+                    <label class="form-label">调整余额</label>
+                    <div class="d-flex gap-2">
+                        <input type="number" name="balance" class="form-control" step="0.01" min="0" value="{{ profile.balance }}" required>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="edit-footer">
+            <form method="post" style="flex: 1;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-outline w-100" style="border-color: var(--accent-red); color: var(--accent-red);" onclick="return confirm('确定要删除会员 {{ member.username }} 吗？此操作不可恢复。')">删除此会员</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

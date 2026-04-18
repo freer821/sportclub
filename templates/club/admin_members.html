@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}会员管理{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .search-input {
+        flex: 1;
+        max-width: 400px;
+        padding: 12px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--accent-red);
+    }
+
+    .member-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .member-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 150px 150px;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+        gap: 16px;
+    }
+
+    .member-row:last-child {
+        border-bottom: none;
+    }
+
+    .member-row-header {
+        background: var(--bg-secondary);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 150px 150px;
+        gap: 16px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .member-row-header span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .member-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .member-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .member-email {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .member-balance {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.3rem;
+        color: var(--accent-gold);
+    }
+
+    .member-joined {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .member-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    @media (max-width: 991.98px) {
+        .member-row, .member-row-header {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .member-row > div {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👥 会员管理</h1>
+        <p class="page-subtitle">管理所有会员账户</p>
+    </div>
+</div>
+
+<div class="member-card animate-in">
+    <div class="member-row-header">
+        <span>用户</span>
+        <span>邮箱</span>
+        <span>注册时间</span>
+        <span>余额</span>
+        <span>操作</span>
+    </div>
+    {% for user in users %}
+    <div class="member-row">
+        <div class="member-info">
+            <span class="member-name">{{ user.username }}</span>
+            <span class="member-email">{{ user.get_full_name|default:"-" }}</span>
+        </div>
+        <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
+        <div class="member-joined">{{ user.date_joined|date:"Y-m-d" }}</div>
+        <div class="member-balance">{{ user.profile.balance }}EUR</div>
+        <div class="member-actions">
+            <a href="{% url 'admin_member_edit' user.id %}" class="btn btn-outline btn-sm">编辑</a>
+            <form method="post" action="{% url 'admin_member_edit' user.id %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);" onclick="return confirm('确定要删除会员 {{ user.username }} 吗？')">删除</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-state-icon">👥</div>
+        <p>暂无会员</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

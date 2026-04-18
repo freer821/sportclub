@@ -12,28 +12,55 @@
         margin-bottom: 24px;
     }
 
-    .member-row {
+    .member-row,
+    .request-row,
+    .record-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 100px 200px;
-        align-items: center;
-        padding: 16px 0;
-        border-bottom: 1px solid var(--border-color);
         gap: 16px;
+        align-items: start;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border-color);
     }
 
-    .member-row:last-child {
+    .member-row:last-child,
+    .request-row:last-child,
+    .record-row:last-child {
         border-bottom: none;
     }
 
-    .member-row-header {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 100px 200px;
-        gap: 16px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border-color);
+    .member-row {
+        grid-template-columns: 1.5fr 1fr 120px 220px;
     }
 
-    .member-row-header span {
+    .request-row {
+        grid-template-columns: 100px 160px 1fr 190px 180px;
+    }
+
+    .record-row {
+        grid-template-columns: 100px 160px 1fr 170px 140px;
+    }
+
+    .table-header {
+        display: grid;
+        gap: 16px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .table-header.member {
+        grid-template-columns: 1.5fr 1fr 120px 220px;
+    }
+
+    .table-header.request {
+        grid-template-columns: 100px 160px 1fr 190px 180px;
+    }
+
+    .table-header.record {
+        grid-template-columns: 100px 160px 1fr 170px 140px;
+    }
+
+    .table-header span {
         color: var(--text-muted);
         font-size: 0.75rem;
         font-weight: 600;
@@ -41,88 +68,73 @@
         letter-spacing: 0.08em;
     }
 
-    .member-info {
+    .member-main {
         display: flex;
         flex-direction: column;
         gap: 4px;
     }
 
     .member-name {
-        font-weight: 600;
+        font-weight: 700;
     }
 
-    .member-email {
-        color: var(--text-muted);
-        font-size: 0.85rem;
+    .member-meta,
+    .muted {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
 
-    .member-balance {
+    .member-balance,
+    .tx-amount {
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.3rem;
         color: var(--accent-gold);
     }
 
-    .transaction-row {
-        display: grid;
-        grid-template-columns: 60px 1fr 180px 140px 100px;
-        align-items: center;
-        padding: 16px 0;
-        border-bottom: 1px solid var(--border-color);
-        gap: 16px;
-    }
-
-    .transaction-row:last-child {
-        border-bottom: none;
-    }
-
-    .transaction-row-header {
-        display: grid;
-        grid-template-columns: 60px 1fr 180px 140px 100px;
-        gap: 16px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .transaction-row-header span {
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-    }
-
-    .tx-id {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.1rem;
-        color: var(--text-muted);
-    }
-
-    .tx-form {
+    .inline-form,
+    .stack-form {
         display: flex;
         gap: 8px;
+        align-items: center;
     }
 
-    .tx-input {
-        width: 100px;
-        padding: 8px 12px;
+    .stack-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tx-input,
+    .tx-select,
+    .tx-note {
+        width: 100%;
+        padding: 10px 12px;
         background: var(--bg-secondary);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
         color: var(--text-primary);
-        font-size: 0.9rem;
+        font-size: 0.92rem;
     }
 
-    .tx-input:focus {
-        outline: none;
-        border-color: var(--accent-gold);
+    .tx-note {
+        min-height: 84px;
+        resize: vertical;
+    }
+
+    .request-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background: rgba(0, 0, 0, 0.8);
         display: flex;
         align-items: center;
@@ -143,10 +155,10 @@
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
         width: 100%;
-        max-width: 480px;
+        max-width: 520px;
         max-height: 90vh;
         overflow-y: auto;
-        transform: scale(0.9);
+        transform: scale(0.94);
         transition: transform var(--transition-normal);
     }
 
@@ -154,22 +166,27 @@
         transform: scale(1);
     }
 
-    .modal-header {
-        padding: 24px 28px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    .modal-header,
+    .modal-footer {
+        padding: 20px 24px;
         background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
     }
 
-    .modal-title {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.6rem;
+    .modal-footer {
+        border-bottom: 0;
+        border-top: 1px solid var(--border-color);
         display: flex;
-        align-items: center;
+        justify-content: flex-end;
         gap: 12px;
-        margin: 0;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
     }
 
     .modal-close {
@@ -177,80 +194,17 @@
         border: none;
         color: var(--text-muted);
         cursor: pointer;
-        padding: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color var(--transition-fast);
-    }
-
-    .modal-close:hover {
-        color: var(--text-primary);
-    }
-
-    .modal-body {
-        padding: 28px;
-    }
-
-    .modal-footer {
-        padding: 20px 28px;
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        background: var(--bg-secondary);
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .source-options {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-    }
-
-    .source-option {
-        display: none;
-    }
-
-    .source-option + label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 16px 12px;
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        font-weight: 500;
-    }
-
-    .source-option:checked + label {
-        border-color: var(--accent-gold);
-        background: rgba(255, 214, 10, 0.1);
-    }
-
-    .source-option + label:hover {
-        border-color: var(--accent-gold);
-    }
-
-    .source-icon {
-        font-size: 1.5rem;
     }
 
     @media (max-width: 991.98px) {
-        .member-row, .member-row-header,
-        .transaction-row, .transaction-row-header {
-            display: flex;
-            flex-wrap: wrap;
+        .table-header {
+            display: none;
         }
 
-        .member-row > div, .transaction-row > div {
-            width: 100%;
+        .member-row,
+        .request-row,
+        .record-row {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -260,37 +214,94 @@
 <div class="page-header d-flex align-items-center justify-content-between">
     <div>
         <h1 class="page-title">💰 会员充值</h1>
-        <p class="page-subtitle">为会员账户添加余额</p>
+        <p class="page-subtitle">用户提交申请后，由管理员审核、修改并入账</p>
     </div>
     <button class="btn btn-primary" onclick="openRechargeModal()">
-        ➕ 充值
+        ➕ 管理员直接充值
     </button>
 </div>
 
 <div class="recharge-card animate-in">
     <div class="card-header">
-        <h2 class="card-title">👥 会员列表</h2>
+        <h2 class="card-title">⏳ 待审批充值申请</h2>
     </div>
     <div class="card-body">
-        <div class="member-row-header">
-            <span>用户名</span>
+        {% if pending_recharge_transactions %}
+            <div class="table-header request">
+                <span>ID</span>
+                <span>会员</span>
+                <span>申请内容</span>
+                <span>申请时间</span>
+                <span>操作</span>
+            </div>
+            {% for tx in pending_recharge_transactions %}
+            <div class="request-row">
+                <div>
+                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;">#{{ tx.id }}</div>
+                    <span class="badge badge-warning">{{ tx.get_status_display }}</span>
+                </div>
+                <div>
+                    <div class="member-name">{{ tx.user.username }}</div>
+                    <div class="member-meta">{{ tx.user.get_full_name|default:"-" }}</div>
+                    <div class="member-meta">{{ tx.user.email|default:"-" }}</div>
+                </div>
+                <div>
+                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="stack-form">
+                        {% csrf_token %}
+                        <input type="number" name="amount" class="tx-input" value="{{ tx.amount }}" step="0.01" min="0.01" required>
+                        <select name="source" class="tx-select">
+                            {% for value, label in form.fields.source.choices %}
+                            <option value="{{ value }}"{% if tx.source == value %} selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <textarea name="note" class="tx-note" placeholder="备注">{{ tx.note }}</textarea>
+                        <button type="submit" class="btn btn-outline btn-sm">保存修改</button>
+                    </form>
+                </div>
+                <div class="muted">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                <div class="action-group">
+                    <form method="post" action="{% url 'approve_admin_recharge' tx.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">批准入账</button>
+                    </form>
+                    <form method="post" action="{% url 'delete_admin_recharge' tx.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-sm" style="width: 100%; border-color: var(--accent-red); color: var(--accent-red);">删除申请</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <p>暂无待审批充值申请</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="recharge-card animate-in delay-1">
+    <div class="card-header">
+        <h2 class="card-title">👥 会员快速充值</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-header member">
+            <span>会员</span>
             <span>邮箱</span>
             <span>当前余额</span>
-            <span></span>
             <span>快速充值</span>
         </div>
         {% for user in users %}
         <div class="member-row">
-            <div class="member-info">
+            <div class="member-main">
                 <span class="member-name">{{ user.username }}</span>
-                <span class="member-email">{{ user.get_full_name|default:"-" }}</span>
+                <span class="member-meta">{{ user.get_full_name|default:"-" }}</span>
             </div>
-            <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email }}</div>
+            <div class="muted">{{ user.email|default:"-" }}</div>
             <div class="member-balance">{{ user.profile.balance }}EUR</div>
-            <div></div>
-            <form method="post" action="{% url 'quick_recharge' user.id %}" class="recharge-form">
+            <form method="post" action="{% url 'quick_recharge' user.id %}" class="inline-form">
                 {% csrf_token %}
-                <input type="number" name="amount" class="recharge-input" placeholder="金额" step="0.01" min="1" required style="width: 100px; padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.95rem;">
+                <input type="number" name="amount" class="tx-input" placeholder="金额" step="0.01" min="1" required>
                 <button type="submit" class="btn btn-primary btn-sm">充值</button>
             </form>
         </div>
@@ -298,35 +309,52 @@
     </div>
 </div>
 
-<div class="recharge-card animate-in delay-1">
+<div class="recharge-card animate-in delay-2">
     <div class="card-header">
-        <h2 class="card-title">📜 充值记录列表</h2>
+        <h2 class="card-title">📜 已完成充值记录</h2>
     </div>
     <div class="card-body">
-        {% if recharge_transactions %}
-            <div class="transaction-row-header">
+        {% if completed_recharge_transactions %}
+            <div class="table-header record">
                 <span>ID</span>
                 <span>会员</span>
-                <span>金额</span>
-                <span>时间</span>
+                <span>内容</span>
+                <span>审批信息</span>
                 <span>操作</span>
             </div>
-            {% for tx in recharge_transactions %}
-            <div class="transaction-row">
-                <div class="tx-id">#{{ tx.id }}</div>
-                <div style="font-weight: 600;">{{ tx.user.username }}</div>
+            {% for tx in completed_recharge_transactions %}
+            <div class="record-row">
                 <div>
-                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="tx-form">
+                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;">#{{ tx.id }}</div>
+                    <span class="badge badge-success">{{ tx.get_status_display }}</span>
+                </div>
+                <div>
+                    <div class="member-name">{{ tx.user.username }}</div>
+                    <div class="member-meta">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                <div>
+                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="stack-form">
                         {% csrf_token %}
                         <input type="number" name="amount" class="tx-input" value="{{ tx.amount }}" step="0.01" min="0.01" required>
-                        <button type="submit" class="btn btn-outline btn-sm">修改</button>
+                        <select name="source" class="tx-select">
+                            {% for value, label in form.fields.source.choices %}
+                            <option value="{{ value }}"{% if tx.source == value %} selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <textarea name="note" class="tx-note" placeholder="备注">{{ tx.note }}</textarea>
+                        <button type="submit" class="btn btn-outline btn-sm">保存修改</button>
                     </form>
                 </div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                <div class="request-summary">
+                    <div class="tx-amount">{{ tx.amount }}EUR</div>
+                    <div class="muted">{{ tx.get_source_display|default:"-" }}</div>
+                    <div class="muted">审批人：{{ tx.approved_by.username|default:"-" }}</div>
+                    <div class="muted">审批时间：{{ tx.approved_at|date:"Y-m-d H:i"|default:"-" }}</div>
+                </div>
                 <div>
                     <form method="post" action="{% url 'delete_admin_recharge' tx.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);">删除</button>
+                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red); width: 100%;">删除并回滚</button>
                     </form>
                 </div>
             </div>
@@ -334,7 +362,7 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">📜</div>
-                <p>暂无充值记录</p>
+                <p>暂无已完成充值记录</p>
             </div>
         {% endif %}
     </div>
@@ -342,20 +370,16 @@
 
 <div class="modal-overlay" id="rechargeModal">
     <div class="modal-card">
-        <div class="modal-header">
-            <h3 class="modal-title">💰 会员充值</h3>
-            <button class="modal-close" onclick="closeRechargeModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+        <div class="modal-header d-flex align-items-center justify-content-between">
+            <h3 class="modal-title">💰 管理员直接充值</h3>
+            <button class="modal-close" onclick="closeRechargeModal()">✕</button>
         </div>
-        <form method="post" action="{% url 'admin_recharge' %}" id="rechargeForm">
+        <form method="post" action="{% url 'admin_recharge' %}">
             {% csrf_token %}
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label">选择会员</label>
-                    <select name="user_id" id="id_user_id" class="form-control" required>
+                    <select name="user_id" class="form-control" required>
                         <option value="">请选择会员...</option>
                         {% for user in users %}
                         <option value="{{ user.id }}">{{ user.username }} ({{ user.get_full_name|default:user.username }})</option>
@@ -364,36 +388,23 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">充值金额</label>
-                    <input type="number" name="amount" id="id_amount" class="form-control" step="0.01" min="1" placeholder="输入金额" required>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">支付方式</label>
-                    <div class="source-options">
-                        <input type="radio" name="source" id="source_wechat" value="wechat" class="source-option" checked>
-                        <label for="source_wechat">
-                            <span class="source-icon">💳</span>
-                            <span>微信</span>
-                        </label>
-                        <input type="radio" name="source" id="source_paypal" value="paypal" class="source-option">
-                        <label for="source_paypal">
-                            <span class="source-icon">🅿️</span>
-                            <span>PayPal</span>
-                        </label>
-                        <input type="radio" name="source" id="source_cash" value="cash" class="source-option">
-                        <label for="source_cash">
-                            <span class="source-icon">💵</span>
-                            <span>现金</span>
-                        </label>
-                        <input type="radio" name="source" id="source_other" value="other" class="source-option">
-                        <label for="source_other">
-                            <span class="source-icon">📋</span>
-                            <span>其他</span>
-                        </label>
-                    </div>
+                    <label class="form-label">充值渠道</label>
+                    <select name="source" class="form-control">
+                        {% for value, label in form.fields.source.choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea name="note" class="form-control" rows="3" placeholder="可填写线下付款说明"></textarea>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">充值时间 <span style="color: var(--text-muted); font-weight: normal;">(留空使用当前时间)</span></label>
-                    <input type="datetime-local" name="recharge_time" id="id_recharge_time" class="form-control">
+                    <input type="datetime-local" name="recharge_time" class="form-control">
                 </div>
             </div>
             <div class="modal-footer">

@@ -97,6 +97,39 @@
         padding: 16px 24px;
         font-size: 1.05rem;
     }
+
+    .request-list {
+        margin-top: 24px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 24px;
+    }
+
+    .request-item {
+        padding: 14px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        margin-bottom: 12px;
+    }
+
+    .request-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .request-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+
+    .request-note {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+        white-space: pre-wrap;
+    }
 </style>
 {% endblock %}
 
@@ -106,7 +139,7 @@
         <div class="recharge-header">
             <div class="recharge-icon">💰</div>
             <h1 class="recharge-title">账户充值</h1>
-            <p class="recharge-subtitle">为您的账户添加余额，参与更多活动</p>
+            <p class="recharge-subtitle">提交充值申请后，需管理员审核通过才会入账</p>
         </div>
         <div class="recharge-body">
             <form method="post">
@@ -119,9 +152,29 @@
                 </div>
                 {{ form|crispy }}
                 <div class="mt-3">
-                    <button type="submit" class="btn btn-gold btn-recharge">充值</button>
+                    <button type="submit" class="btn btn-gold btn-recharge">提交充值申请</button>
                 </div>
             </form>
+
+            {% if pending_recharges %}
+            <div class="request-list">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px;">待审批申请</h3>
+                {% for tx in pending_recharges %}
+                <div class="request-item">
+                    <div class="request-meta">
+                        <strong>{{ tx.amount }}EUR / {{ tx.get_source_display }}</strong>
+                        <span class="badge badge-warning">{{ tx.get_status_display }}</span>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">
+                        提交时间：{{ tx.created_at|date:"Y-m-d H:i" }}
+                    </div>
+                    {% if tx.note %}
+                    <p class="request-note">{{ tx.note }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

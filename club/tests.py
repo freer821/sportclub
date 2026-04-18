@@ -1,10 +1,12 @@
 from decimal import Decimal
+from datetime import date
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from club.models import Event, Participation, Transaction, UserProfile
+from club.forms import EventForm
 
 
 class RegistrationTests(TestCase):
@@ -16,8 +18,8 @@ class RegistrationTests(TestCase):
                 'email': 'newmember@example.com',
                 'first_name': 'New',
                 'last_name': 'Member',
-                'password1': 'StrongPass12345',
-                'password2': 'StrongPass12345',
+                'password1': 'simple1',
+                'password2': 'simple1',
             },
             follow=True,
         )
@@ -25,6 +27,23 @@ class RegistrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         user = User.objects.get(username='newmember')
         self.assertEqual(UserProfile.objects.filter(user=user).count(), 1)
+
+    def test_register_allows_simple_password_when_length_requirement_is_met(self):
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'easyuser',
+                'email': 'easyuser@example.com',
+                'first_name': 'Easy',
+                'last_name': 'User',
+                'password1': '123456',
+                'password2': '123456',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(username='easyuser').exists())
 
 
 class EventFlowTests(TestCase):
@@ -96,6 +115,81 @@ class AdminRechargeTests(TestCase):
         response = self.client.get('/admin/recharge/', follow=True)
         self.assertEqual(response.status_code, 200)
 
+    def test_member_recharge_creates_pending_request_without_updating_balance(self):
+        self.client.logout()
+        self.client.login(username='member', password='StrongPass12345')
+
+        response = self.client.post(
+            reverse('recharge'),
+            {
+                'amount': '18.00',
+                'source': 'wechat',
+                'note': '转账截图已提交',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tx = Transaction.objects.get(user=self.member, transaction_type='recharge')
+        member_profile = UserProfile.objects.get(user=self.member)
+        self.assertEqual(tx.status, 'pending')
+        self.assertEqual(tx.source, 'wechat')
+        self.assertEqual(tx.note, '转账截图已提交')
+        self.assertEqual(member_profile.balance, Decimal('0'))
+
+    def test_admin_can_approve_pending_recharge_request(self):
+        tx = Transaction.objects.create(
+            user=self.member,
+            transaction_type='recharge',
+            amount=Decimal('18.00'),
+            source='paypal',
+            note='waiting for approval',
+            status='pending',
+            description='充值申请（PayPal）',
+        )
+
+        response = self.client.post(
+            reverse('approve_admin_recharge', args=[tx.id]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tx.refresh_from_db()
+        member_profile = UserProfile.objects.get(user=self.member)
+        self.assertEqual(tx.status, 'approved')
+        self.assertEqual(tx.approved_by, self.admin)
+        self.assertEqual(member_profile.balance, Decimal('18.00'))
+
+    def test_admin_can_update_pending_recharge_request_details(self):
+        tx = Transaction.objects.create(
+            user=self.member,
+            transaction_type='recharge',
+            amount=Decimal('12.00'),
+            source='wechat',
+            note='old note',
+            status='pending',
+            description='充值申请（WeChat）',
+        )
+
+        response = self.client.post(
+            reverse('update_admin_recharge', args=[tx.id]),
+            {
+                'amount': '15.50',
+                'source': 'cash',
+                'note': 'paid in person',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tx.refresh_from_db()
+        member_profile = UserProfile.objects.get(user=self.member)
+        self.assertEqual(tx.amount, Decimal('15.50'))
+        self.assertEqual(tx.source, 'cash')
+        self.assertEqual(tx.note, 'paid in person')
+        self.assertEqual(tx.status, 'pending')
+        self.assertEqual(member_profile.balance, Decimal('0'))
+
     def test_admin_can_update_manual_recharge(self):
         member_profile = UserProfile.objects.get(user=self.member)
         member_profile.balance = Decimal('20.00')
@@ -136,3 +230,108 @@ class AdminRechargeTests(TestCase):
         member_profile.refresh_from_db()
         self.assertEqual(member_profile.balance, Decimal('5.00'))
         self.assertFalse(Transaction.objects.filter(id=tx.id).exists())
+
+
+class AdminDashboardStatsTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
+        self.member1 = User.objects.create_user(username='member1', password='StrongPass12345')
+        self.member2 = User.objects.create_user(username='member2', password='StrongPass12345')
+        self.client.login(username='admin', password='StrongPass12345')
+
+    def test_registered_member_count_excludes_admin_users(self):
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['registered_member_count'], 2)
+        self.assertTrue(all(not profile.user.is_staff for profile in response.context['all_users']))
+
+
+class EventCreationTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
+        self.client.login(username='admin', password='StrongPass12345')
+
+    def test_event_form_does_not_expose_max_participants_or_price(self):
+        form = EventForm()
+        self.assertNotIn('max_participants', form.fields)
+        self.assertNotIn('price', form.fields)
+        self.assertIn('event_date', form.fields)
+        self.assertIn('start_time', form.fields)
+        self.assertIn('end_time', form.fields)
+
+    def test_site_settings_admin_url_is_resolvable(self):
+        self.assertEqual(reverse('admin:club_sitesettings_changelist'), '/admin/club/sitesettings/')
+
+    def test_admin_can_create_event_with_date_start_and_end_time(self):
+        response = self.client.post(
+            reverse('create_event'),
+            {
+                'title': 'Evening Match',
+                'description': 'training',
+                'location': 'Main Gym',
+                'event_date': date.today().isoformat(),
+                'start_time': '18:00',
+                'end_time': '20:00',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        event = Event.objects.get(title='Evening Match')
+        self.assertEqual(timezone.localtime(event.date).strftime('%H:%M'), '18:00')
+        self.assertEqual(timezone.localtime(event.end_time).strftime('%H:%M'), '20:00')
+        self.assertEqual(event.max_participants, 30)
+        self.assertIsNone(event.price)
+
+
+class UpcomingEventsTests(TestCase):
+    def test_home_upcoming_events_include_ongoing_and_exclude_ended(self):
+        now = timezone.now()
+        ongoing = Event.objects.create(
+            title='Ongoing Match',
+            description='ongoing',
+            location='Court A',
+            date=now - timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=1),
+        )
+        Event.objects.create(
+            title='Ended Match',
+            description='ended',
+            location='Court B',
+            date=now - timezone.timedelta(hours=3),
+            end_time=now - timezone.timedelta(hours=1),
+        )
+        future = Event.objects.create(
+            title='Future Match',
+            description='future',
+            location='Court C',
+            date=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=1, hours=2),
+        )
+
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        upcoming_ids = [event.id for event in response.context['upcoming_events']]
+        self.assertIn(ongoing.id, upcoming_ids)
+        self.assertIn(future.id, upcoming_ids)
+        self.assertEqual(len(upcoming_ids), 2)
+
+    def test_admin_dashboard_upcoming_events_include_ongoing(self):
+        admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
+        now = timezone.now()
+        ongoing = Event.objects.create(
+            title='Ongoing Admin Match',
+            description='ongoing',
+            location='Court A',
+            date=now - timezone.timedelta(minutes=30),
+            end_time=now + timezone.timedelta(minutes=90),
+        )
+        self.client.login(username='admin', password='StrongPass12345')
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        upcoming_ids = [event.id for event in response.context['upcoming_events']]
+        self.assertIn(ongoing.id, upcoming_ids)

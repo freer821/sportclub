@@ -35,6 +35,7 @@ class Event(models.Model):
     description = models.TextField(blank=True)
     location = models.CharField(max_length=300)
     date = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)
     max_participants = models.IntegerField(default=30)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_events')
@@ -80,6 +81,16 @@ class Participation(models.Model):
 
 
 class Transaction(models.Model):
+    RECHARGE_SOURCE_CHOICES = [
+        ('wechat', 'WeChat'),
+        ('paypal', 'PayPal'),
+        ('cash', '现金'),
+        ('other', '其他'),
+    ]
+    RECHARGE_STATUS_CHOICES = [
+        ('pending', '待审批'),
+        ('approved', '已批准'),
+    ]
     TYPE_CHOICES = [
         ('recharge', 'Recharge'),
         ('event_fee', 'Event Fee'),
@@ -89,7 +100,27 @@ class Transaction(models.Model):
     transaction_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=200)
+    source = models.CharField(
+        max_length=20,
+        choices=RECHARGE_SOURCE_CHOICES,
+        blank=True,
+        default='',
+    )
+    note = models.TextField(blank=True, default='')
+    status = models.CharField(
+        max_length=20,
+        choices=RECHARGE_STATUS_CHOICES,
+        default='approved',
+    )
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_transactions',
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

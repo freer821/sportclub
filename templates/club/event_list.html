@@ -215,7 +215,7 @@
             {% for event in events %}
             <div class="event-row">
                 <div class="event-title">{{ event.title }}</div>
-                <div class="event-date">{{ event.date|date:"Y年m月d日 H:i" }}</div>
+                <div class="event-date">{{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %}</div>
                 <div class="event-location">{{ event.location }}</div>
                 <div class="event-participants">
                     <div class="event-participants-count {% if event.is_full %}full{% endif %}">{{ event.participant_count }}/{{ event.max_participants }}</div>
@@ -242,7 +242,7 @@
                 <div class="mobile-meta">
                     <div class="mobile-meta-item">
                         <span class="mobile-meta-label">日期</span>
-                        <span class="mobile-meta-value">{{ event.date|date:"Y年m月d日 H:i" }}</span>
+                        <span class="mobile-meta-value">{{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %}</span>
                     </div>
                     <div class="mobile-meta-item">
                         <span class="mobile-meta-label">地点</span>

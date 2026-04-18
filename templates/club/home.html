@@ -460,7 +460,7 @@
         {% for event in upcoming_events %}
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="event-card">
-                <div class="event-date">📅 {{ event.date|date:"Y年m月d日 H:i" }}</div>
+                <div class="event-date">📅 {{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %}</div>
                 <h4 class="event-title">{{ event.title }}</h4>
                 <div class="event-meta">
                     <div class="event-meta-item">

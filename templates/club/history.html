@@ -112,16 +112,31 @@
                 <div class="transaction-date">{{ tx.created_at|date:"Y年m月d日 H:i" }}</div>
                 <div>
                     {% if tx.transaction_type == 'recharge' %}
-                        <span class="badge badge-success">充值</span>
+                        {% if tx.status == 'pending' %}
+                            <span class="badge badge-warning">充值待审批</span>
+                        {% else %}
+                            <span class="badge badge-success">充值</span>
+                        {% endif %}
                     {% elif tx.transaction_type == 'event_fee' %}
                         <span class="badge badge-danger">活动费</span>
                     {% else %}
                         <span class="badge badge-warning">退款</span>
                     {% endif %}
                 </div>
-                <div>{{ tx.description }}</div>
-                <div class="transaction-amount {% if tx.transaction_type == 'recharge' or tx.transaction_type == 'refund' %}positive{% else %}negative{% endif %}">
-                    {% if tx.transaction_type == 'recharge' or tx.transaction_type == 'refund' %}+{% else %}-{% endif %}{{ tx.amount }}EUR
+                <div>
+                    <div>{{ tx.description }}</div>
+                    {% if tx.note %}
+                    <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">备注：{{ tx.note }}</div>
+                    {% endif %}
+                </div>
+                <div class="transaction-amount {% if tx.transaction_type == 'refund' or tx.transaction_type == 'recharge' and tx.status == 'approved' %}positive{% elif tx.transaction_type == 'recharge' and tx.status == 'pending' %}{% else %}negative{% endif %}">
+                    {% if tx.transaction_type == 'recharge' and tx.status == 'pending' %}
+                        {{ tx.amount }}EUR
+                    {% elif tx.transaction_type == 'recharge' or tx.transaction_type == 'refund' %}
+                        +{{ tx.amount }}EUR
+                    {% else %}
+                        -{{ tx.amount }}EUR
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

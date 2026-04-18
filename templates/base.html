@@ -13,10 +13,11 @@
     <link rel="stylesheet" href="{% load static %}{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% if user.is_authenticated %}logged-in{% endif %}">
     {% get_current_language as CURRENT_LANGUAGE %}
 
     <div class="layout-shell">
+        {% if user.is_authenticated %}
         <aside class="sidebar">
             <a class="brand" href="{% url 'home' %}">
                 <div class="brand-icon">🏀</div>
@@ -26,37 +27,11 @@
                 </div>
             </a>
 
-            {% if user.is_authenticated %}
-            <div class="user-panel">
-                <div class="user-info">
-                    <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
-                    <div class="user-details">
-                        <div class="user-name">{{ user.username }}</div>
-                        <div class="user-role">{% if user.is_staff %}管理员{% else %}会员{% endif %}</div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
             <nav class="nav-section">
-                <div class="nav-menu">
-                    <div class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                            </svg>
-                            {% trans "Home" %}
-                        </a>
-                    </div>
-                </div>
-
-                {% if user.is_authenticated %}
-                <div class="nav-divider"></div>
-                <div class="nav-section-title">{% if user.is_staff %}管理{% else %}我的{% endif %}</div>
                 <div class="nav-menu">
                     {% if user.is_staff %}
                     <div class="nav-item">
-                        <a class="nav-link {% if 'dashboard' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'dashboard' %}">
+                        <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
@@ -65,19 +40,27 @@
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a class="nav-link {% if 'admin_recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">
+                        <a class="nav-link {% if '/admin/members' in request.path %}active{% endif %}" href="{% url 'admin_members' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                             </svg>
-                            会员充值
+                            会员管理
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a class="nav-link {% if request.path == '/events/create/' %}active{% endif %}" href="{% url 'create_event' %}">
+                        <a class="nav-link {% if '/admin/recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            创建活动
+                            充值管理
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link {% if '/admin/events' in request.path or request.path == '/events/create/' %}active{% endif %}" href="{% url 'admin_events' %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                            </svg>
+                            活动管理
                         </a>
                     </div>
                     {% else %}
@@ -89,7 +72,6 @@
                             个人中心
                         </a>
                     </div>
-                    {% endif %}
                     <div class="nav-item">
                         <a class="nav-link {% if '/events/' == request.path or '/events/' in request.path and '/create/' not in request.path %}active{% endif %}" href="{% url 'event_list' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -106,18 +88,19 @@
                             记录
                         </a>
                     </div>
-                </div>
-
-                <div class="nav-divider"></div>
-                <div class="nav-menu">
                     <div class="nav-item">
-                        <a class="nav-link {% if 'recharge' in request.path %}active{% endif %}" href="{% url 'recharge' %}">
+                        <a class="nav-link {% if 'recharge' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'recharge' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
                             充值
                         </a>
                     </div>
+                    {% endif %}
+                </div>
+
+                <div class="nav-divider"></div>
+                <div class="nav-menu">
                     <div class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -127,51 +110,7 @@
                         </a>
                     </div>
                 </div>
-                {% else %}
-                <div class="nav-divider"></div>
-                <div class="nav-menu">
-                    <div class="nav-item">
-                        <a class="nav-link {% if 'login' in request.path %}active{% endif %}" href="{% url 'login' %}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                            </svg>
-                            登录
-                        </a>
-                    </div>
-                    <div class="nav-item">
-                        <a class="nav-link {% if 'register' in request.path %}active{% endif %}" href="{% url 'register' %}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.125v3.75A2.25 2.25 0 009 21.75h6.75a2.25 2.25 0 002.25-2.25v-3.75a3.375 3.375 0 00-3.375-3.375H7.125A3.375 3.375 0 013.75 12m0 0v3.75m0-3h13.5" />
-                            </svg>
-                            注册
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
             </nav>
-
-            <div class="sidebar-footer">
-                <div class="language-switcher flags">
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="zh-hans">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'zh-hans' %}active{% endif %}" type="submit" title="中文">🇨🇳</button>
-                    </form>
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="de">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}" type="submit" title="Deutsch">🇩🇪</button>
-                    </form>
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="en">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}" type="submit" title="English">🇬🇧</button>
-                    </form>
-                </div>
-            </div>
         </aside>
 
         <header class="mobile-header">
@@ -198,53 +137,41 @@
                     </button>
                 </div>
                 <div class="mobile-nav-links">
-                    <a class="mobile-nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                        </svg>
-                        {% trans "Home" %}
-                    </a>
-                    {% if user.is_authenticated %}
-                        {% if user.is_staff %}
-                        <a class="mobile-nav-link {% if 'dashboard' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'dashboard' %}">管理后台</a>
-                        <a class="mobile-nav-link {% if 'admin_recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">会员充值</a>
-                        <a class="mobile-nav-link {% if request.path == '/events/create/' %}active{% endif %}" href="{% url 'create_event' %}">创建活动</a>
-                        {% else %}
-                        <a class="mobile-nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">个人中心</a>
-                        {% endif %}
-                        <a class="mobile-nav-link {% if '/events/' == request.path or '/events/' in request.path and '/create/' not in request.path %}active{% endif %}" href="{% url 'event_list' %}">活动</a>
-                        <a class="mobile-nav-link {% if 'history' in request.path %}active{% endif %}" href="{% url 'history' %}">记录</a>
-                        <a class="mobile-nav-link {% if 'recharge' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'recharge' %}">充值</a>
-                        <a class="mobile-nav-link" href="{% url 'logout' %}">退出</a>
+                    {% if user.is_staff %}
+                    <a class="mobile-nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">🏠 管理后台</a>
+                    <a class="mobile-nav-link {% if '/admin/members' in request.path %}active{% endif %}" href="{% url 'admin_members' %}">👥 会员管理</a>
+                    <a class="mobile-nav-link {% if '/admin/recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">💰 充值管理</a>
+                    <a class="mobile-nav-link {% if '/admin/events' in request.path or request.path == '/events/create/' %}active{% endif %}" href="{% url 'admin_events' %}">📅 活动管理</a>
                     {% else %}
-                        <a class="mobile-nav-link {% if 'login' in request.path %}active{% endif %}" href="{% url 'login' %}">登录</a>
-                        <a class="mobile-nav-link {% if 'register' in request.path %}active{% endif %}" href="{% url 'register' %}">注册</a>
+                    <a class="mobile-nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">👤 个人中心</a>
+                    <a class="mobile-nav-link {% if '/events/' == request.path or '/events/' in request.path and '/create/' not in request.path %}active{% endif %}" href="{% url 'event_list' %}">📅 活动</a>
+                    <a class="mobile-nav-link {% if 'history' in request.path %}active{% endif %}" href="{% url 'history' %}">📜 记录</a>
+                    <a class="mobile-nav-link {% if 'recharge' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'recharge' %}">💳 充值</a>
                     {% endif %}
-                </div>
-                <div class="mobile-lang-switcher flags">
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}" style="flex:1;">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="zh-hans">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'zh-hans' %}active{% endif %}" type="submit" style="width:100%; font-size: 1.5rem;" title="中文">🇨🇳</button>
-                    </form>
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}" style="flex:1;">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="de">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}" type="submit" style="width:100%; font-size: 1.5rem;" title="Deutsch">🇩🇪</button>
-                    </form>
-                    <form class="lang-form" method="post" action="{% url 'set_language' %}" style="flex:1;">
-                        {% csrf_token %}
-                        <input type="hidden" name="language" value="en">
-                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                        <button class="lang-btn {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}" type="submit" style="width:100%; font-size: 1.5rem;" title="English">🇬🇧</button>
-                    </form>
+                    <a class="mobile-nav-link" href="{% url 'logout' %}">🚪 退出</a>
                 </div>
             </div>
         </nav>
+        {% endif %}
 
         <main class="content-area">
+            <div class="global-toolbar">
+                <form class="global-language-form" method="post" action="{% url 'set_language' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <label class="global-language-label" for="global-language-select">语言</label>
+                    <select
+                        id="global-language-select"
+                        name="language"
+                        class="form-control global-language-select"
+                        onchange="this.form.submit()"
+                    >
+                        <option value="zh-hans"{% if CURRENT_LANGUAGE == 'zh-hans' %} selected{% endif %}>中文</option>
+                        <option value="de"{% if CURRENT_LANGUAGE == 'de' %} selected{% endif %}>Deutsch</option>
+                        <option value="en"{% if CURRENT_LANGUAGE == 'en' %} selected{% endif %}>English</option>
+                    </select>
+                </form>
+            </div>
             <div class="main-content">
                 {% if messages %}
                     {% for message in messages %}
