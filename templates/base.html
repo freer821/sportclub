@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.css">
-    <link rel="stylesheet" href="{% load static %}{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% load static %}{% static 'css/style.css' %}?v=20260418-header2">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}logged-in{% endif %}">
@@ -19,13 +19,24 @@
     <div class="layout-shell">
         {% if user.is_authenticated %}
         <aside class="sidebar">
-            <a class="brand" href="{% url 'home' %}">
-                <div class="brand-icon">🏀</div>
-                <div class="brand-text">
-                    法兰克福篮球
-                    <span>华人篮球俱乐部</span>
-                </div>
-            </a>
+            <div class="brand-bar">
+                <a class="brand" href="{% url 'home' %}">
+                    <div class="brand-icon">🏀</div>
+                    <div class="brand-text">
+                        法兰克福篮球
+                        <span>华人篮球俱乐部</span>
+                    </div>
+                </a>
+                <form class="brand-lang-form" method="post" action="{% url 'set_language' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <select class="brand-lang-select" name="language" onchange="this.form.submit()">
+                        <option value="zh-hans"{% if CURRENT_LANGUAGE == 'zh-hans' %} selected{% endif %}>🇨🇳 中文</option>
+                        <option value="de"{% if CURRENT_LANGUAGE == 'de' %} selected{% endif %}>🇩🇪 Deutsch</option>
+                        <option value="en"{% if CURRENT_LANGUAGE == 'en' %} selected{% endif %}>🇬🇧 English</option>
+                    </select>
+                </form>
+            </div>
 
             <nav class="nav-section">
                 <div class="nav-menu">
@@ -155,23 +166,30 @@
         {% endif %}
 
         <main class="content-area">
-            <div class="global-toolbar">
-                <form class="global-language-form" method="post" action="{% url 'set_language' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <label class="global-language-label" for="global-language-select">语言</label>
-                    <select
-                        id="global-language-select"
-                        name="language"
-                        class="form-control global-language-select"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="zh-hans"{% if CURRENT_LANGUAGE == 'zh-hans' %} selected{% endif %}>中文</option>
-                        <option value="de"{% if CURRENT_LANGUAGE == 'de' %} selected{% endif %}>Deutsch</option>
-                        <option value="en"{% if CURRENT_LANGUAGE == 'en' %} selected{% endif %}>English</option>
-                    </select>
-                </form>
-            </div>
+            {% if not user.is_authenticated %}
+            <header class="public-header" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;">
+                <a class="public-brand" href="{% url 'home' %}" style="display:flex;align-items:center;gap:14px;min-width:0;width:fit-content;">
+                    <div class="brand-icon">🏀</div>
+                    <div class="brand-text">
+                        法兰克福篮球
+                        <span>华人篮球俱乐部</span>
+                    </div>
+                </a>
+                <div class="public-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap;justify-self:end;align-self:center;min-width:max-content;">
+                    <form class="public-lang-form" method="post" action="{% url 'set_language' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <select class="public-lang-select" name="language" onchange="this.form.submit()">
+                            <option value="zh-hans"{% if CURRENT_LANGUAGE == 'zh-hans' %} selected{% endif %}>🇨🇳 中文</option>
+                            <option value="de"{% if CURRENT_LANGUAGE == 'de' %} selected{% endif %}>🇩🇪 Deutsch</option>
+                            <option value="en"{% if CURRENT_LANGUAGE == 'en' %} selected{% endif %}>🇬🇧 English</option>
+                        </select>
+                    </form>
+                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm">登录</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">立即加入</a>
+                </div>
+            </header>
+            {% endif %}
             <div class="main-content">
                 {% if messages %}
                     {% for message in messages %}

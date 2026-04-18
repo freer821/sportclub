@@ -284,25 +284,37 @@ class EventCreationTests(TestCase):
         self.assertEqual(event.max_participants, 30)
         self.assertIsNone(event.price)
 
+    def test_admin_can_create_repeated_events(self):
+        response = self.client.post(
+            reverse('create_event'),
+            {
+                'title': 'Weekly Match',
+                'description': 'repeat',
+                'location': 'Main Gym',
+                'event_date': date.today().isoformat(),
+                'start_time': '18:00',
+                'end_time': '20:00',
+                'repeat_mode': 'weekly',
+                'repeat_count': 3,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Event.objects.filter(title='Weekly Match').count(), 3)
+
 
 class UpcomingEventsTests(TestCase):
-    def test_home_upcoming_events_include_ongoing_and_exclude_ended(self):
+    def test_home_prefers_today_event_over_later_event(self):
         now = timezone.now()
-        ongoing = Event.objects.create(
-            title='Ongoing Match',
-            description='ongoing',
+        today_event = Event.objects.create(
+            title='Today Match',
+            description='today',
             location='Court A',
-            date=now - timezone.timedelta(hours=1),
-            end_time=now + timezone.timedelta(hours=1),
+            date=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=3),
         )
-        Event.objects.create(
-            title='Ended Match',
-            description='ended',
-            location='Court B',
-            date=now - timezone.timedelta(hours=3),
-            end_time=now - timezone.timedelta(hours=1),
-        )
-        future = Event.objects.create(
+        future_event = Event.objects.create(
             title='Future Match',
             description='future',
             location='Court C',
@@ -313,10 +325,35 @@ class UpcomingEventsTests(TestCase):
         response = self.client.get(reverse('home'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['featured_event'].id, today_event.id)
+        self.assertTrue(response.context['featured_event_is_today'])
         upcoming_ids = [event.id for event in response.context['upcoming_events']]
-        self.assertIn(ongoing.id, upcoming_ids)
-        self.assertIn(future.id, upcoming_ids)
-        self.assertEqual(len(upcoming_ids), 2)
+        self.assertEqual(upcoming_ids, [today_event.id])
+
+    def test_home_falls_back_to_next_event_when_no_today_event(self):
+        now = timezone.now()
+        next_event = Event.objects.create(
+            title='Next Match',
+            description='future',
+            location='Court A',
+            date=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=2, hours=2),
+        )
+
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['featured_event'].id, next_event.id)
+        self.assertFalse(response.context['featured_event_is_today'])
+        self.assertEqual([event.id for event in response.context['upcoming_events']], [next_event.id])
+
+    def test_home_has_no_featured_event_when_no_upcoming_event_exists(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['featured_event'])
+        self.assertFalse(response.context['featured_event_is_today'])
+        self.assertEqual(response.context['upcoming_events'], [])
 
     def test_admin_dashboard_upcoming_events_include_ongoing(self):
         admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
@@ -335,3 +372,22 @@ class UpcomingEventsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         upcoming_ids = [event.id for event in response.context['upcoming_events']]
         self.assertIn(ongoing.id, upcoming_ids)
+
+
+class EventListTests(TestCase):
+    def test_admin_event_list_does_not_show_join_actions(self):
+        admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
+        event = Event.objects.create(
+            title='Admin View Match',
+            description='admin',
+            location='Court A',
+            date=timezone.now() + timezone.timedelta(days=1),
+            end_time=timezone.now() + timezone.timedelta(days=1, hours=2),
+        )
+        self.client.login(username='admin', password='StrongPass12345')
+
+        response = self.client.get(reverse('event_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, reverse('join_event', args=[event.id]))
+        self.assertContains(response, '详情')

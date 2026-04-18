@@ -113,6 +113,19 @@
         font-size: 0.85rem;
         margin: 0;
     }
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+        transform: scaleX(0);
+        transition: transform var(--transition-normal);
+    }
+
+    .feature-card:hover {
+        border-color: rgba(230, 57, 70, 0.3);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-glow);
+    }
 
     .venue-card {
         background: var(--bg-card);
@@ -120,7 +133,7 @@
         border-radius: var(--radius-md);
         padding: 32px;
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 1.7fr 1fr;
         gap: 40px;
         align-items: center;
         margin-bottom: 48px;
@@ -141,27 +154,56 @@
     .venue-title {
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.8rem;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .venue-address {
-        color: var(--text-secondary);
-        line-height: 1.7;
-        margin-bottom: 0;
+    .venue-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(230, 57, 70, 0.14);
+        color: var(--accent-red);
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 18px;
     }
 
-    .venue-address strong {
+    .venue-summary {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 20px;
+    }
+
+    .venue-meta {
+        display: grid;
+        gap: 10px;
+    }
+
+    .venue-meta-item {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .venue-meta-item strong {
         color: var(--text-primary);
     }
 
-    .venue-time {
-        text-align: center;
-        padding: 24px;
+    .venue-aside {
+        display: grid;
+        gap: 14px;
+    }
+
+    .venue-panel {
+        padding: 22px 24px;
         background: var(--bg-secondary);
         border-radius: var(--radius-md);
+        text-align: center;
     }
 
     .venue-time-title {
@@ -175,6 +217,14 @@
         font-family: 'Bebas Neue', sans-serif;
         font-size: 2.5rem;
         color: var(--accent-gold);
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .venue-time-subvalue {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem;
+        color: var(--text-primary);
         line-height: 1;
         margin-bottom: 4px;
     }
@@ -203,7 +253,7 @@
 
     .calendar-title {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.6rem;
+        font-size: 1.8rem;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -324,7 +374,7 @@
 
     .info-card-title {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         margin-bottom: 16px;
         display: flex;
         align-items: center;
@@ -354,7 +404,7 @@
             gap: 24px;
         }
 
-        .venue-time {
+        .venue-aside {
             order: -1;
         }
 
@@ -392,15 +442,12 @@
     <div class="hero-badge">🏀 2024 赛季进行中</div>
     <h1 class="hero-title">法兰克福<br>华人篮球俱乐部</h1>
     <p class="hero-subtitle">每周六、周日 18:00-22:00 加入我们，在篮球场上挥洒汗水，结识志同道合的伙伴</p>
-    <div class="hero-actions">
-        {% if not user.is_authenticated %}
-            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">立即加入</a>
-            <a href="{% url 'login' %}" class="btn btn-outline btn-lg">登录</a>
-        {% else %}
+    {% if user.is_authenticated %}
+        <div class="hero-actions">
             <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">进入中心</a>
             <a href="{% url 'event_list' %}" class="btn btn-outline btn-lg">查看活动</a>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 </div>
 
 <div class="features-grid animate-in delay-1">
@@ -427,19 +474,59 @@
 </div>
 
 <div class="venue-card animate-in delay-2">
-    <div class="venue-content">
-        <h3 class="venue-title">📍 场地地址</h3>
-        <p class="venue-address">
-            <strong>Gymnasium Nord (Westhausen)</strong><br>
-            Muckermannstraße 1, 60488 Frankfurt am Main<br>
-            <span style="color: var(--text-muted);">地铁U7线 Westhausen站，步行约400米</span>
-        </p>
-    </div>
-    <div class="venue-time">
-        <div class="venue-time-title">🕐 活动时间</div>
-        <div class="venue-time-value">18:00 - 22:00</div>
-        <div class="venue-time-label">周六、周日</div>
-    </div>
+    {% if featured_event %}
+        <div class="venue-content">
+            <div class="venue-kicker">
+                {% if featured_event_is_today %}🕐 今日活动{% else %}🗓️ 下一场活动{% endif %}
+            </div>
+            <h3 class="venue-title">{{ featured_event.title }}</h3>
+            <p class="venue-summary">
+                {% if featured_event.description %}
+                    {{ featured_event.description }}
+                {% else %}
+                    这是一场已发布的俱乐部活动，欢迎提前查看时间、地点并完成报名。
+                {% endif %}
+            </p>
+            <div class="venue-meta">
+                <div class="venue-meta-item">📅 <strong>{{ featured_event.date|date:"Y年m月d日" }}</strong></div>
+                <div class="venue-meta-item">📍 <strong>{{ featured_event.location }}</strong></div>
+                <div class="venue-meta-item">👥 <strong>{{ featured_event.participant_count }}/{{ featured_event.max_participants }}</strong> 人已报名</div>
+            </div>
+        </div>
+        <div class="venue-aside">
+            <div class="venue-panel">
+                <div class="venue-time-title">活动时间</div>
+                <div class="venue-time-value">
+                    {{ featured_event.date|date:"H:i" }}{% if featured_event.end_time %} - {{ featured_event.end_time|date:"H:i" }}{% endif %}
+                </div>
+                <div class="venue-time-label">{% if featured_event_is_today %}今天开始{% else %}下一场安排{% endif %}</div>
+            </div>
+            <div class="venue-panel">
+                <div class="venue-time-title">活动费用</div>
+                <div class="venue-time-subvalue">{{ featured_event.event_price }} EUR</div>
+                <div class="venue-time-label">按会员账户余额扣费</div>
+            </div>
+        </div>
+    {% else %}
+        <div class="venue-content">
+            <div class="venue-kicker">📭 暂无活动</div>
+            <h3 class="venue-title">当前没有今天或下一场活动</h3>
+            <p class="venue-summary">
+                暂时还没有发布新的活动安排。你可以先查看活动日历，或者稍后回来确认最新活动。
+            </p>
+            <div class="venue-meta">
+                <div class="venue-meta-item">📍 默认场地：<strong>Gymnasium Nord (Westhausen)</strong></div>
+                <div class="venue-meta-item">🚇 地铁U7线 Westhausen站，步行约400米</div>
+            </div>
+        </div>
+        <div class="venue-aside">
+            <div class="venue-panel">
+                <div class="venue-time-title">活动状态</div>
+                <div class="venue-time-value">--</div>
+                <div class="venue-time-label">等待管理员发布新活动</div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <div class="calendar-card animate-in delay-3">
@@ -450,40 +537,6 @@
         <div id="calendar"></div>
     </div>
 </div>
-
-{% if upcoming_events %}
-<div class="events-section animate-in delay-4">
-    <div class="section-header">
-        <h2 class="section-title">📋 即将进行的活动</h2>
-    </div>
-    <div class="row">
-        {% for event in upcoming_events %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="event-card">
-                <div class="event-date">📅 {{ event.date|date:"Y年m月d日 H:i" }}{% if event.end_time %} - {{ event.end_time|date:"H:i" }}{% endif %}</div>
-                <h4 class="event-title">{{ event.title }}</h4>
-                <div class="event-meta">
-                    <div class="event-meta-item">
-                        📍 {{ event.location }}
-                    </div>
-                    <div class="event-meta-item">
-                        👥 {{ event.participant_count }}/{{ event.max_participants }} 人<span>已报名</span>
-                    </div>
-                </div>
-                <div class="event-footer">
-                    <div class="event-price">{{ event.event_price }}<small> EUR</small></div>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'join_event' event.id %}" class="btn btn-primary">报名参加</a>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-outline">登录后报名</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
 
 <div class="info-grid animate-in delay-4">
     <div class="info-card">

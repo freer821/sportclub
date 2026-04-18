@@ -26,6 +26,11 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class EventForm(forms.ModelForm):
+    REPEAT_CHOICES = [
+        ('none', '不重复'),
+        ('weekly', '每周'),
+        ('biweekly', '每两周'),
+    ]
     event_date = forms.DateField(
         label='活动日期',
         widget=forms.DateInput(attrs={'type': 'date'})
@@ -38,6 +43,23 @@ class EventForm(forms.ModelForm):
         label='结束时间',
         widget=forms.TimeInput(attrs={'type': 'time'})
     )
+    repeat_mode = forms.ChoiceField(
+        label='重复方式',
+        choices=REPEAT_CHOICES,
+        required=False,
+        initial='none',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text='可按固定周期连续创建多场活动',
+    )
+    repeat_count = forms.IntegerField(
+        label='重复次数',
+        min_value=1,
+        max_value=12,
+        required=False,
+        initial=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        help_text='填写总共要创建几场，例如 4 表示创建 4 场',
+    )
 
     class Meta:
         model = Event
@@ -48,14 +70,17 @@ class EventForm(forms.ModelForm):
         event_date = cleaned_data.get('event_date')
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
+        repeat_mode = cleaned_data.get('repeat_mode') or 'none'
+        repeat_count = cleaned_data.get('repeat_count')
 
         if event_date and start_time and end_time and end_time <= start_time:
             self.add_error('end_time', '结束时间必须晚于开始时间。')
+        if repeat_mode != 'none' and not repeat_count:
+            self.add_error('repeat_count', '选择重复创建时，请填写重复次数。')
 
         return cleaned_data
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
+    def build_datetimes(self):
         event_date = self.cleaned_data['event_date']
         start_time = self.cleaned_data['start_time']
         end_time = self.cleaned_data['end_time']
@@ -68,6 +93,11 @@ class EventForm(forms.ModelForm):
         if timezone.is_naive(end_dt):
             end_dt = timezone.make_aware(end_dt, tz)
 
+        return start_dt, end_dt
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        start_dt, end_dt = self.build_datetimes()
         instance.date = start_dt
         instance.end_time = end_dt
         instance.price = None

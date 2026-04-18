@@ -4,9 +4,12 @@
 
 {% block extra_css %}
 <style>
-    .edit-container {
-        max-width: 600px;
+    .edit-layout {
+        max-width: 1100px;
         margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+        gap: 24px;
     }
 
     .edit-card {
@@ -26,20 +29,20 @@
         padding: 28px;
     }
 
-    .edit-footer {
-        padding: 20px 28px;
-        border-top: 1px solid var(--border-color);
-        background: var(--bg-secondary);
-        display: flex;
-        gap: 12px;
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
     }
 
-    .balance-display {
-        text-align: center;
+    .balance-hero {
         padding: 24px;
-        background: var(--bg-secondary);
-        border-radius: var(--radius-sm);
-        margin-bottom: 24px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, rgba(230, 57, 70, 0.14), rgba(255, 214, 10, 0.08));
+        border: 1px solid rgba(255, 214, 10, 0.12);
+        margin-bottom: 20px;
+        text-align: center;
     }
 
     .balance-amount {
@@ -50,65 +53,160 @@
     }
 
     .balance-label {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
         margin-top: 8px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
 
-    .member-stats {
+    .stats-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
     }
 
     .stat-item {
         background: var(--bg-secondary);
-        padding: 16px;
+        border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
+        padding: 16px;
         text-align: center;
     }
 
     .stat-value {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.5rem;
-        color: var(--text-primary);
+        font-size: 1.7rem;
     }
 
     .stat-label {
         color: var(--text-muted);
-        font-size: 0.75rem;
+        font-size: 0.76rem;
         text-transform: uppercase;
-        margin-top: 4px;
+        letter-spacing: 0.08em;
+    }
+
+    .side-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .list-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .list-header,
+    .list-row {
+        display: grid;
+        gap: 16px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-color);
+        align-items: center;
+    }
+
+    .list-header {
+        background: var(--bg-secondary);
+    }
+
+    .list-header span {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .list-row:last-child {
+        border-bottom: none;
+    }
+
+    .event-grid {
+        grid-template-columns: 1.2fr 120px 90px;
+    }
+
+    .tx-grid {
+        grid-template-columns: 120px 1fr 120px;
+    }
+
+    .detail-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .detail-item {
+        padding: 14px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+    }
+
+    .detail-label {
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+    }
+
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        margin-bottom: 20px;
+    }
+
+    .danger-zone {
+        padding: 24px 28px 28px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(230, 57, 70, 0.04);
+    }
+
+    @media (max-width: 991.98px) {
+        .edit-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .info-grid,
+        .stats-grid,
+        .event-grid,
+        .tx-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="edit-container animate-in">
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">编辑会员</h1>
+        <p class="page-subtitle">维护会员资料、状态与账户余额</p>
+    </div>
+    <a href="{% url 'admin_members' %}" class="btn btn-outline">返回列表</a>
+</div>
+
+<div class="edit-layout animate-in">
     <div class="edit-card">
         <div class="edit-header">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h2 class="card-title">编辑会员</h2>
-                    <p class="card-subtitle">{{ member.username }}</p>
-                </div>
-                <a href="{% url 'admin_members' %}" class="btn btn-outline btn-sm">返回列表</a>
-            </div>
+            <h2 class="card-title">{{ member.get_full_name|default:member.username }}</h2>
+            <p class="card-subtitle">@{{ member.username }}</p>
         </div>
         <div class="edit-body">
-            <div class="balance-display">
-                <div class="balance-amount">{{ profile.balance }}EUR</div>
+            <div class="balance-hero">
+                <div class="balance-amount">{{ profile.balance }} EUR</div>
                 <div class="balance-label">当前余额</div>
             </div>
 
-            <div class="member-stats">
-                <div class="stat-item">
-                    <div class="stat-value">{{ member.profile.balance }}</div>
-                    <div class="stat-label">余额</div>
-                </div>
+            <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-value">{{ member.participations.count }}</div>
                     <div class="stat-label">参与活动</div>
@@ -117,26 +215,136 @@
                     <div class="stat-value">{{ member.transactions.count }}</div>
                     <div class="stat-label">交易记录</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value">{% if member.is_active %}正常{% else %}Inactive{% endif %}</div>
+                    <div class="stat-label">会员状态</div>
+                </div>
             </div>
 
             <form method="post">
                 {% csrf_token %}
-                <input type="hidden" name="action" value="update_balance">
-                <div class="form-group">
-                    <label class="form-label">调整余额</label>
-                    <div class="d-flex gap-2">
+                <input type="hidden" name="action" value="update_member">
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label class="form-label">用户名</label>
+                        <input type="text" name="username" class="form-control" value="{{ member.username }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="email" class="form-control" value="{{ member.email }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">名字</label>
+                        <input type="text" name="first_name" class="form-control" value="{{ member.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">姓氏</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ member.last_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">账户余额</label>
                         <input type="number" name="balance" class="form-control" step="0.01" min="0" value="{{ profile.balance }}" required>
-                        <button type="submit" class="btn btn-primary">保存</button>
                     </div>
                 </div>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" name="is_active" {% if member.is_active %}checked{% endif %}>
+                    <span>会员状态为 Active，取消勾选则设为 Inactive</span>
+                </label>
+
+                <button type="submit" class="btn btn-primary">保存会员信息</button>
             </form>
         </div>
-        <div class="edit-footer">
-            <form method="post" style="flex: 1;">
+        <div class="danger-zone">
+            <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
-                <button type="submit" class="btn btn-outline w-100" style="border-color: var(--accent-red); color: var(--accent-red);" onclick="return confirm('确定要删除会员 {{ member.username }} 吗？此操作不可恢复。')">删除此会员</button>
+                <button type="submit" class="btn btn-outline" style="border-color: var(--accent-red); color: var(--accent-red);" onclick="return confirm('确定要删除会员 {{ member.username }} 吗？此操作不可恢复。')">删除此会员</button>
             </form>
+        </div>
+    </div>
+
+    <div class="side-stack">
+        <div class="edit-card">
+            <div class="edit-header">
+                <h3 class="card-title">账户信息</h3>
+            </div>
+            <div class="edit-body">
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <div class="detail-label">会员 ID</div>
+                        <div>{{ member.id }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">注册时间</div>
+                        <div>{{ member.date_joined|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">最后登录</div>
+                        <div>{{ member.last_login|date:"Y-m-d H:i"|default:"-" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">会员类型</div>
+                        <div>{% if member.is_staff %}管理员{% else %}普通会员{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-card">
+            <div class="edit-header">
+                <h3 class="card-title">参与活动详情</h3>
+            </div>
+            {% if participations %}
+                <div class="list-header event-grid">
+                    <span>活动</span>
+                    <span>状态</span>
+                    <span>费用</span>
+                </div>
+                {% for participation in participations %}
+                <div class="list-row event-grid">
+                    <div>
+                        <div>{{ participation.event.title }}</div>
+                        <div class="muted">{{ participation.event.date|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    <div class="muted">{{ participation.get_status_display }}</div>
+                    <div class="amount">{{ participation.event.event_price }}EUR</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <p>暂无活动记录</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="list-card">
+            <div class="edit-header">
+                <h3 class="card-title">费用相关记录</h3>
+            </div>
+            {% if transactions %}
+                <div class="list-header tx-grid">
+                    <span>类型</span>
+                    <span>说明</span>
+                    <span>金额</span>
+                </div>
+                {% for tx in transactions %}
+                <div class="list-row tx-grid">
+                    <div class="muted">{{ tx.get_transaction_type_display }}</div>
+                    <div>
+                        <div>{{ tx.description }}</div>
+                        <div class="muted">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    <div class="amount">{{ tx.amount }}EUR</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">💳</div>
+                    <p>暂无费用记录</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

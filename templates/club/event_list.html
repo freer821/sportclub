@@ -223,13 +223,12 @@
                 </div>
                 <div class="event-price">{{ event.event_price }}<small> EUR</small></div>
                 <div class="event-actions">
-                    {% if event.id in user_participations %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">详情</a>
+                    {% elif event.id in user_participations %}
                         <a href="{% url 'leave_event' event.id %}" class="btn btn-outline btn-sm">取消</a>
                     {% else %}
                         <a href="{% url 'join_event' event.id %}" class="btn btn-primary btn-sm">报名</a>
-                    {% endif %}
-                    {% if user.is_staff %}
-                        <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">详情</a>
                     {% endif %}
                 </div>
             </div>
@@ -254,13 +253,12 @@
                     </div>
                 </div>
                 <div class="mobile-footer">
-                    {% if event.id in user_participations %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">参与者</a>
+                    {% elif event.id in user_participations %}
                         <a href="{% url 'leave_event' event.id %}" class="btn btn-outline btn-sm">取消报名</a>
                     {% else %}
                         <a href="{% url 'join_event' event.id %}" class="btn btn-primary btn-sm">报名参加</a>
-                    {% endif %}
-                    {% if user.is_staff %}
-                        <a href="{% url 'event_participants' event.id %}" class="btn btn-outline btn-sm">参与者</a>
                     {% endif %}
                 </div>
             </div>

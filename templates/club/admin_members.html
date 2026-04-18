@@ -43,7 +43,7 @@
 
     .member-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 150px 150px;
+        grid-template-columns: 1fr 1fr 1fr 150px 220px;
         align-items: center;
         padding: 20px 24px;
         border-bottom: 1px solid var(--border-color);
@@ -57,7 +57,7 @@
     .member-row-header {
         background: var(--bg-secondary);
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 150px 150px;
+        grid-template-columns: 1fr 1fr 1fr 150px 220px;
         gap: 16px;
         padding: 12px 24px;
         border-bottom: 1px solid var(--border-color);
@@ -142,7 +142,7 @@
         <div class="member-joined">{{ user.date_joined|date:"Y-m-d" }}</div>
         <div class="member-balance">{{ user.profile.balance }}EUR</div>
         <div class="member-actions">
-            <a href="{% url 'admin_member_edit' user.id %}" class="btn btn-outline btn-sm">编辑</a>
+            <a href="{% url 'admin_member_edit' user.id %}" class="btn btn-outline btn-sm">详情</a>
             <form method="post" action="{% url 'admin_member_edit' user.id %}" style="display: inline;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">

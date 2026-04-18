@@ -1,5 +1,6 @@
 import decimal
 import logging
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -151,10 +152,36 @@ def create_event(request):
     if request.method == "POST":
         form = EventForm(request.POST)
         if form.is_valid():
-            event = form.save(commit=False)
-            event.created_by = request.user
-            event.save()
-            messages.success(request, f'Event "{event.title}" created successfully!')
+            start_dt, end_dt = form.build_datetimes()
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            location = form.cleaned_data["location"]
+            repeat_mode = form.cleaned_data.get("repeat_mode") or "none"
+            repeat_count = form.cleaned_data.get("repeat_count") or 1
+            repeat_delta = timedelta(weeks=2) if repeat_mode == "biweekly" else timedelta(weeks=1)
+
+            created_events = []
+            occurrences = repeat_count if repeat_mode != "none" else 1
+            for index in range(occurrences):
+                offset = repeat_delta * index if repeat_mode != "none" else timedelta(0)
+                event = Event(
+                    title=title,
+                    description=description,
+                    location=location,
+                    date=start_dt + offset,
+                    end_time=end_dt + offset,
+                    price=None,
+                    created_by=request.user,
+                )
+                event.save()
+                created_events.append(event)
+            if len(created_events) == 1:
+                messages.success(request, f'Event "{created_events[0].title}" created successfully!')
+            else:
+                messages.success(
+                    request,
+                    f'Event series "{created_events[0].title}" created successfully! 共创建 {len(created_events)} 场活动。',
+                )
             return redirect("event_list")
     else:
         form = EventForm()
@@ -189,7 +216,15 @@ def admin_events(request):
         return redirect("dashboard")
 
     events = Event.objects.all().order_by("-date")
-    return render(request, "club/admin_events.html", {"events": events})
+    total_collected_fees = sum(event.total_fee_amount for event in events)
+    return render(
+        request,
+        "club/admin_events.html",
+        {
+            "events": events,
+            "total_collected_fees": total_collected_fees,
+        },
+    )
 
 
 @login_required

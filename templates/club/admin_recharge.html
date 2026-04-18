@@ -12,55 +12,20 @@
         margin-bottom: 24px;
     }
 
-    .member-row,
-    .request-row,
-    .record-row {
+    .list-header,
+    .list-row {
         display: grid;
         gap: 16px;
-        align-items: start;
-        padding: 18px 24px;
+        padding: 16px 24px;
+        align-items: center;
         border-bottom: 1px solid var(--border-color);
     }
 
-    .member-row:last-child,
-    .request-row:last-child,
-    .record-row:last-child {
-        border-bottom: none;
-    }
-
-    .member-row {
-        grid-template-columns: 1.5fr 1fr 120px 220px;
-    }
-
-    .request-row {
-        grid-template-columns: 100px 160px 1fr 190px 180px;
-    }
-
-    .record-row {
-        grid-template-columns: 100px 160px 1fr 170px 140px;
-    }
-
-    .table-header {
-        display: grid;
-        gap: 16px;
-        padding: 12px 24px;
-        border-bottom: 1px solid var(--border-color);
+    .list-header {
         background: var(--bg-secondary);
     }
 
-    .table-header.member {
-        grid-template-columns: 1.5fr 1fr 120px 220px;
-    }
-
-    .table-header.request {
-        grid-template-columns: 100px 160px 1fr 190px 180px;
-    }
-
-    .table-header.record {
-        grid-template-columns: 100px 160px 1fr 170px 140px;
-    }
-
-    .table-header span {
+    .list-header span {
         color: var(--text-muted);
         font-size: 0.75rem;
         font-weight: 600;
@@ -68,7 +33,20 @@
         letter-spacing: 0.08em;
     }
 
-    .member-main {
+    .list-row:last-child {
+        border-bottom: none;
+    }
+
+    .pending-grid {
+        grid-template-columns: 90px 180px 1fr 180px 210px;
+    }
+
+    .record-grid {
+        grid-template-columns: 90px 180px 1fr 190px 190px;
+    }
+
+    .member-main,
+    .record-main {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -76,59 +54,23 @@
 
     .member-name {
         font-weight: 700;
+        font-size: 1.05rem;
     }
 
-    .member-meta,
     .muted {
         color: var(--text-secondary);
         font-size: 0.9rem;
     }
 
-    .member-balance,
-    .tx-amount {
+    .amount {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         color: var(--accent-gold);
-    }
-
-    .inline-form,
-    .stack-form {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .stack-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .tx-input,
-    .tx-select,
-    .tx-note {
-        width: 100%;
-        padding: 10px 12px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        color: var(--text-primary);
-        font-size: 0.92rem;
-    }
-
-    .tx-note {
-        min-height: 84px;
-        resize: vertical;
-    }
-
-    .request-summary {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
     }
 
     .action-group {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 8px;
     }
 
@@ -151,32 +93,27 @@
     }
 
     .modal-card {
+        width: 100%;
+        max-width: 540px;
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
-        width: 100%;
-        max-width: 520px;
-        max-height: 90vh;
-        overflow-y: auto;
-        transform: scale(0.94);
-        transition: transform var(--transition-normal);
-    }
-
-    .modal-overlay.show .modal-card {
-        transform: scale(1);
+        overflow: hidden;
     }
 
     .modal-header,
     .modal-footer {
         padding: 20px 24px;
         background: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         border-bottom: 1px solid var(--border-color);
     }
 
     .modal-footer {
         border-bottom: 0;
         border-top: 1px solid var(--border-color);
-        display: flex;
         justify-content: flex-end;
         gap: 12px;
     }
@@ -185,25 +122,22 @@
         padding: 24px;
     }
 
-    .form-group {
-        margin-bottom: 18px;
-    }
-
     .modal-close {
-        background: none;
-        border: none;
+        border: 0;
+        background: transparent;
         color: var(--text-muted);
         cursor: pointer;
+        font-size: 1.2rem;
     }
 
     @media (max-width: 991.98px) {
-        .table-header {
+        .list-header {
             display: none;
         }
 
-        .member-row,
-        .request-row,
-        .record-row {
+        .list-row,
+        .pending-grid,
+        .record-grid {
             grid-template-columns: 1fr;
         }
     }
@@ -227,7 +161,7 @@
     </div>
     <div class="card-body">
         {% if pending_recharge_transactions %}
-            <div class="table-header request">
+            <div class="list-header pending-grid">
                 <span>ID</span>
                 <span>会员</span>
                 <span>申请内容</span>
@@ -235,38 +169,44 @@
                 <span>操作</span>
             </div>
             {% for tx in pending_recharge_transactions %}
-            <div class="request-row">
+            <div class="list-row pending-grid">
                 <div>
-                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;">#{{ tx.id }}</div>
+                    <div class="member-name">#{{ tx.id }}</div>
                     <span class="badge badge-warning">{{ tx.get_status_display }}</span>
                 </div>
-                <div>
+                <div class="record-main">
                     <div class="member-name">{{ tx.user.username }}</div>
-                    <div class="member-meta">{{ tx.user.get_full_name|default:"-" }}</div>
-                    <div class="member-meta">{{ tx.user.email|default:"-" }}</div>
+                    <div class="muted">{{ tx.user.get_full_name|default:"-" }}</div>
+                    <div class="muted">{{ tx.user.email|default:"-" }}</div>
                 </div>
-                <div>
-                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="stack-form">
-                        {% csrf_token %}
-                        <input type="number" name="amount" class="tx-input" value="{{ tx.amount }}" step="0.01" min="0.01" required>
-                        <select name="source" class="tx-select">
-                            {% for value, label in form.fields.source.choices %}
-                            <option value="{{ value }}"{% if tx.source == value %} selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <textarea name="note" class="tx-note" placeholder="备注">{{ tx.note }}</textarea>
-                        <button type="submit" class="btn btn-outline btn-sm">保存修改</button>
-                    </form>
+                <div class="record-main">
+                    <div class="amount">{{ tx.amount }} EUR</div>
+                    <div class="muted">{{ tx.get_source_display|default:"-" }}</div>
+                    <div class="muted">{{ tx.note|default:"无备注" }}</div>
                 </div>
                 <div class="muted">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
                 <div class="action-group">
                     <form method="post" action="{% url 'approve_admin_recharge' tx.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">批准入账</button>
+                        <button type="submit" class="btn btn-primary btn-sm">批准</button>
                     </form>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-sm"
+                        onclick="openEditRechargeModal(this)"
+                        data-update-url="{% url 'update_admin_recharge' tx.id %}"
+                        data-member-id="{{ tx.user.id }}"
+                        data-member-name="{{ tx.user.username }}"
+                        data-amount="{{ tx.amount }}"
+                        data-source="{{ tx.source }}"
+                        data-note="{{ tx.note }}"
+                        data-title="修改充值申请"
+                    >
+                        修改
+                    </button>
                     <form method="post" action="{% url 'delete_admin_recharge' tx.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline btn-sm" style="width: 100%; border-color: var(--accent-red); color: var(--accent-red);">删除申请</button>
+                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);">删除</button>
                     </form>
                 </div>
             </div>
@@ -282,40 +222,11 @@
 
 <div class="recharge-card animate-in delay-1">
     <div class="card-header">
-        <h2 class="card-title">👥 会员快速充值</h2>
-    </div>
-    <div class="card-body">
-        <div class="table-header member">
-            <span>会员</span>
-            <span>邮箱</span>
-            <span>当前余额</span>
-            <span>快速充值</span>
-        </div>
-        {% for user in users %}
-        <div class="member-row">
-            <div class="member-main">
-                <span class="member-name">{{ user.username }}</span>
-                <span class="member-meta">{{ user.get_full_name|default:"-" }}</span>
-            </div>
-            <div class="muted">{{ user.email|default:"-" }}</div>
-            <div class="member-balance">{{ user.profile.balance }}EUR</div>
-            <form method="post" action="{% url 'quick_recharge' user.id %}" class="inline-form">
-                {% csrf_token %}
-                <input type="number" name="amount" class="tx-input" placeholder="金额" step="0.01" min="1" required>
-                <button type="submit" class="btn btn-primary btn-sm">充值</button>
-            </form>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<div class="recharge-card animate-in delay-2">
-    <div class="card-header">
         <h2 class="card-title">📜 已完成充值记录</h2>
     </div>
     <div class="card-body">
         {% if completed_recharge_transactions %}
-            <div class="table-header record">
+            <div class="list-header record-grid">
                 <span>ID</span>
                 <span>会员</span>
                 <span>内容</span>
@@ -323,38 +234,42 @@
                 <span>操作</span>
             </div>
             {% for tx in completed_recharge_transactions %}
-            <div class="record-row">
+            <div class="list-row record-grid">
                 <div>
-                    <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;">#{{ tx.id }}</div>
+                    <div class="member-name">#{{ tx.id }}</div>
                     <span class="badge badge-success">{{ tx.get_status_display }}</span>
                 </div>
-                <div>
+                <div class="record-main">
                     <div class="member-name">{{ tx.user.username }}</div>
-                    <div class="member-meta">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
+                    <div class="muted">{{ tx.created_at|date:"Y-m-d H:i" }}</div>
                 </div>
-                <div>
-                    <form method="post" action="{% url 'update_admin_recharge' tx.id %}" class="stack-form">
-                        {% csrf_token %}
-                        <input type="number" name="amount" class="tx-input" value="{{ tx.amount }}" step="0.01" min="0.01" required>
-                        <select name="source" class="tx-select">
-                            {% for value, label in form.fields.source.choices %}
-                            <option value="{{ value }}"{% if tx.source == value %} selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <textarea name="note" class="tx-note" placeholder="备注">{{ tx.note }}</textarea>
-                        <button type="submit" class="btn btn-outline btn-sm">保存修改</button>
-                    </form>
-                </div>
-                <div class="request-summary">
-                    <div class="tx-amount">{{ tx.amount }}EUR</div>
+                <div class="record-main">
+                    <div class="amount">{{ tx.amount }} EUR</div>
                     <div class="muted">{{ tx.get_source_display|default:"-" }}</div>
+                    <div class="muted">{{ tx.note|default:"无备注" }}</div>
+                </div>
+                <div class="record-main">
                     <div class="muted">审批人：{{ tx.approved_by.username|default:"-" }}</div>
                     <div class="muted">审批时间：{{ tx.approved_at|date:"Y-m-d H:i"|default:"-" }}</div>
                 </div>
-                <div>
+                <div class="action-group">
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-sm"
+                        onclick="openEditRechargeModal(this)"
+                        data-update-url="{% url 'update_admin_recharge' tx.id %}"
+                        data-member-id="{{ tx.user.id }}"
+                        data-member-name="{{ tx.user.username }}"
+                        data-amount="{{ tx.amount }}"
+                        data-source="{{ tx.source }}"
+                        data-note="{{ tx.note }}"
+                        data-title="修改已完成充值"
+                    >
+                        修改
+                    </button>
                     <form method="post" action="{% url 'delete_admin_recharge' tx.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red); width: 100%;">删除并回滚</button>
+                        <button type="submit" class="btn btn-outline btn-sm" style="border-color: var(--accent-red); color: var(--accent-red);">删除并回滚</button>
                     </form>
                 </div>
             </div>
@@ -370,7 +285,7 @@
 
 <div class="modal-overlay" id="rechargeModal">
     <div class="modal-card">
-        <div class="modal-header d-flex align-items-center justify-content-between">
+        <div class="modal-header">
             <h3 class="modal-title">💰 管理员直接充值</h3>
             <button class="modal-close" onclick="closeRechargeModal()">✕</button>
         </div>
@@ -379,7 +294,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label">选择会员</label>
-                    <select name="user_id" class="form-control" required>
+                    <select name="user_id" id="recharge_user_id" class="form-control" required>
                         <option value="">请选择会员...</option>
                         {% for user in users %}
                         <option value="{{ user.id }}">{{ user.username }} ({{ user.get_full_name|default:user.username }})</option>
@@ -400,11 +315,11 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">备注</label>
-                    <textarea name="note" class="form-control" rows="3" placeholder="可填写线下付款说明"></textarea>
+                    <textarea name="note" class="form-control" rows="3" placeholder="可填写付款备注"></textarea>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label">充值时间 <span style="color: var(--text-muted); font-weight: normal;">(留空使用当前时间)</span></label>
-                    <input type="datetime-local" name="recharge_time" class="form-control">
+                    <label class="form-label">充值时间</label>
+                    <input type="datetime-local" name="recharge_time" id="recharge_time" class="form-control">
                 </div>
             </div>
             <div class="modal-footer">
@@ -414,30 +329,97 @@
         </form>
     </div>
 </div>
+
+<div class="modal-overlay" id="editRechargeModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title" id="editRechargeTitle">修改充值记录</h3>
+            <button class="modal-close" onclick="closeEditRechargeModal()">✕</button>
+        </div>
+        <form method="post" id="editRechargeForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">会员</label>
+                    <input type="text" id="editRechargeMember" class="form-control" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">充值金额</label>
+                    <input type="number" name="amount" id="editRechargeAmount" class="form-control" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">充值渠道</label>
+                    <select name="source" id="editRechargeSource" class="form-control">
+                        {% for value, label in form.fields.source.choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">备注</label>
+                    <textarea name="note" id="editRechargeNote" class="form-control" rows="4" placeholder="填写备注"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeEditRechargeModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存修改</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function openRechargeModal() {
-    document.getElementById('rechargeModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
+function toggleModal(id, show) {
+    const modal = document.getElementById(id);
+    modal.classList.toggle('show', show);
+    document.body.style.overflow = show ? 'hidden' : '';
+}
+
+function openRechargeModal(userId = '', username = '') {
+    const select = document.getElementById('recharge_user_id');
+    const rechargeTime = document.getElementById('recharge_time');
+    if (select) {
+        select.value = userId || '';
+    }
+    if (rechargeTime) {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        rechargeTime.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+    toggleModal('rechargeModal', true);
 }
 
 function closeRechargeModal() {
-    document.getElementById('rechargeModal').classList.remove('show');
-    document.body.style.overflow = '';
+    toggleModal('rechargeModal', false);
+}
+
+function openEditRechargeModal(button) {
+    document.getElementById('editRechargeTitle').textContent = button.dataset.title || '修改充值记录';
+    document.getElementById('editRechargeForm').action = button.dataset.updateUrl;
+    document.getElementById('editRechargeMember').value = button.dataset.memberName || '';
+    document.getElementById('editRechargeAmount').value = button.dataset.amount || '';
+    document.getElementById('editRechargeSource').value = button.dataset.source || 'other';
+    document.getElementById('editRechargeNote').value = button.dataset.note || '';
+    toggleModal('editRechargeModal', true);
+}
+
+function closeEditRechargeModal() {
+    toggleModal('editRechargeModal', false);
 }
 
 document.addEventListener('click', function(e) {
-    const modal = document.getElementById('rechargeModal');
-    if (e.target === modal) {
-        closeRechargeModal();
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('show');
+        document.body.style.overflow = '';
     }
 });
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeRechargeModal();
+        closeEditRechargeModal();
     }
 });
 </script>
