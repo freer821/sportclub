@@ -113,32 +113,47 @@ LOGGING = {
         'verbose': {
             'format': '[{levelname}] {asctime} {module} {message}',
             'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'level': 'DEBUG' if DEBUG else 'INFO',
         },
-        'file': {
-            'class': 'logging.FileHandler',
+        'rotating_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': BASE_DIR / 'debug.log',
             'formatter': 'verbose',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB per file
+            'backupCount': 5,  # Keep 5 backup files
+            'level': 'DEBUG' if DEBUG else 'INFO',
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+        'handlers': ['console', 'rotating_file'],
+        'level': 'DEBUG' if DEBUG else 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'handlers': ['console', 'rotating_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'rotating_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console', 'rotating_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'club': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'handlers': ['console', 'rotating_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
     },
