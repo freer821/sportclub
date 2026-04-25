@@ -244,6 +244,10 @@
             <span class="member-summary-label">默认活动费</span>
             <span class="member-summary-value">{{ event_price }} EUR</span>
         </div>
+        <div class="member-summary-item">
+            <span class="member-summary-label">待补缴费用</span>
+            <span class="member-summary-value">{{ pending_fee_total }} EUR</span>
+        </div>
     </div>
 </div>
 
@@ -253,6 +257,15 @@
     <div class="balance-label">账户余额</div>
     <a href="{% url 'recharge' %}" class="btn btn-gold btn-lg">充值</a>
 </div>
+
+{% if pending_fee_total > 0 %}
+<div class="card animate-in" style="margin-bottom: 32px; border-color: rgba(230, 57, 70, 0.3);">
+    <div class="card-body">
+        <h3 class="card-title" style="color: var(--accent-red);">待补缴提醒</h3>
+        <p class="page-subtitle" style="margin-bottom: 0;">当前仍有 {{ pending_fee_total }} EUR 活动费待补缴。后续充值到账后，系统会自动优先冲销欠费。</p>
+    </div>
+</div>
+{% endif %}
 
 <div class="dashboard-grid animate-in delay-1">
     <div class="card">

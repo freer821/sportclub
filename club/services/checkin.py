@@ -9,7 +9,11 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 
-from club.models import Event, Participation, Transaction, UserProfile
+from club.models import Event, EventFeeCharge, Participation, UserProfile
+from .finance import (
+    create_pending_event_fee_charge,
+    create_settled_event_fee_charge,
+)
 
 CHECKIN_TOKEN_SALT = "club.member.checkin"
 
@@ -47,6 +51,27 @@ def available_checkin_events_queryset():
     ).order_by("date")
 
 
+def default_checkin_event(events):
+    events = list(events)
+    if not events:
+        return None
+
+    now_local = timezone.localtime(timezone.now())
+    today = now_local.date()
+    today_events = [
+        event for event in events if timezone.localtime(event.date).date() == today
+    ]
+    if today_events:
+        return min(
+            today_events,
+            key=lambda event: abs(
+                (timezone.localtime(event.date) - now_local).total_seconds()
+            ),
+        )
+
+    return max(events, key=lambda event: event.date)
+
+
 def register_user_for_event(
     user,
     event,
@@ -69,6 +94,11 @@ def register_user_for_event(
         profile, _ = UserProfile.objects.select_for_update().get_or_create(user=user)
         participation = (
             Participation.objects.select_for_update()
+            .filter(user=user, event=event)
+            .first()
+        )
+        charge = (
+            EventFeeCharge.objects.select_for_update()
             .filter(user=user, event=event)
             .first()
         )
@@ -110,14 +140,19 @@ def register_user_for_event(
             )
 
         if profile.balance >= event_price:
-            profile.balance -= event_price
-            profile.save(update_fields=["balance"])
+            create_settled_event_fee_charge(user, event, event_price)
         else:
             charged_amount = decimal.Decimal("0")
             transaction_status = "pending"
             transaction_note = (
                 f"余额不足，签到已记录，待补缴 {event_price}EUR。"
                 f" 签到时余额 {profile.balance}EUR。"
+            )
+            create_pending_event_fee_charge(
+                user,
+                event,
+                event_price,
+                note=transaction_note,
             )
 
         participation_status = (
@@ -132,16 +167,6 @@ def register_user_for_event(
                 event=event,
                 status=participation_status,
             )
-
-        Transaction.objects.create(
-            user=user,
-            transaction_type="event_fee",
-            amount=event_price,
-            description=f"Event: {event.title}",
-            note=transaction_note,
-            status=transaction_status,
-            event=event,
-        )
 
     return EventRegistrationResult(
         status=(

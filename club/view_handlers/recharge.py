@@ -5,14 +5,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Count, DecimalField, Q, Sum, Value
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from club.forms import AdminRechargeForm, RechargeForm
-from club.models import Transaction
-
-from .shared import ensure_profile
+from club.models import Event, EventFeeCharge, Transaction
+from club.services import ensure_profile, settle_pending_event_fee_charges
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,15 @@ def update_transaction_created_at(recharge_tx, recharge_time):
         return
     Transaction.objects.filter(pk=recharge_tx.pk).update(created_at=recharge_time)
     recharge_tx.created_at = recharge_time
+
+
+def apply_recharge_credit(user, amount, *, acting_user=None):
+    profile = ensure_profile(user)
+    profile.balance += amount
+    profile.save(update_fields=["balance"])
+    settle_pending_event_fee_charges(user, acting_user=acting_user)
+    profile.refresh_from_db()
+    return profile
 
 
 @login_required
@@ -92,9 +102,11 @@ def admin_recharge(request):
                 messages.error(request, "Target member does not exist.")
                 return redirect("admin_recharge")
             with transaction.atomic():
-                profile = ensure_profile(target_user)
-                profile.balance += amount
-                profile.save(update_fields=["balance"])
+                profile = apply_recharge_credit(
+                    target_user,
+                    amount,
+                    acting_user=request.user,
+                )
                 recharge_tx = Transaction.objects.create(
                     user=target_user,
                     transaction_type="recharge",
@@ -145,6 +157,89 @@ def admin_recharge(request):
             "users": users,
             "pending_recharge_transactions": pending_recharge_transactions,
             "completed_recharge_transactions": completed_recharge_transactions,
+        },
+    )
+
+
+@login_required
+def admin_fee_management(request):
+    if not request.user.is_staff:
+        messages.error(request, "Only administrators can access this page.")
+        return redirect("dashboard")
+
+    pending_fee_transactions = (
+        EventFeeCharge.objects.filter(
+            status=EventFeeCharge.STATUS_PENDING,
+        )
+        .select_related("user", "event")
+        .order_by("-created_at")
+    )
+    completed_fee_transactions = Transaction.objects.filter(
+        transaction_type="event_fee",
+        status="approved",
+    ).select_related("user", "event", "approved_by").order_by("-created_at")[:50]
+    event_fee_stats = (
+        Event.objects.annotate(
+            approved_revenue=Coalesce(
+                Sum(
+                    "fee_charges__amount",
+                    filter=Q(
+                        fee_charges__status=EventFeeCharge.STATUS_SETTLED,
+                    ),
+                ),
+                Value(decimal.Decimal("0.00")),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
+            ),
+            pending_revenue=Coalesce(
+                Sum(
+                    "fee_charges__amount",
+                    filter=Q(
+                        fee_charges__status=EventFeeCharge.STATUS_PENDING,
+                    ),
+                ),
+                Value(decimal.Decimal("0.00")),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
+            ),
+            approved_fee_count=Count(
+                "fee_charges",
+                filter=Q(
+                    fee_charges__status=EventFeeCharge.STATUS_SETTLED,
+                ),
+            ),
+            pending_fee_count=Count(
+                "fee_charges",
+                filter=Q(
+                    fee_charges__status=EventFeeCharge.STATUS_PENDING,
+                ),
+            ),
+        )
+        .filter(
+            Q(approved_fee_count__gt=0) | Q(pending_fee_count__gt=0)
+        )
+        .order_by("-date")
+    )
+    approved_fee_total = (
+        EventFeeCharge.objects.filter(
+            status=EventFeeCharge.STATUS_SETTLED,
+        ).aggregate(total=Sum("amount")).get("total")
+        or decimal.Decimal("0.00")
+    )
+    pending_fee_total = (
+        EventFeeCharge.objects.filter(
+            status=EventFeeCharge.STATUS_PENDING,
+        ).aggregate(total=Sum("amount")).get("total")
+        or decimal.Decimal("0.00")
+    )
+
+    return render(
+        request,
+        "club/admin_fee_management.html",
+        {
+            "pending_fee_transactions": pending_fee_transactions,
+            "completed_fee_transactions": completed_fee_transactions,
+            "event_fee_stats": event_fee_stats,
+            "approved_fee_total": approved_fee_total,
+            "pending_fee_total": pending_fee_total,
         },
     )
 
@@ -222,9 +317,11 @@ def approve_admin_recharge(request, transaction_id):
         return redirect("admin_recharge")
 
     with transaction.atomic():
-        profile = ensure_profile(recharge_tx.user)
-        profile.balance += recharge_tx.amount
-        profile.save(update_fields=["balance"])
+        profile = apply_recharge_credit(
+            recharge_tx.user,
+            recharge_tx.amount,
+            acting_user=request.user,
+        )
         recharge_tx.status = "approved"
         recharge_tx.approved_by = request.user
         recharge_tx.approved_at = timezone.now()
@@ -267,9 +364,11 @@ def quick_recharge(request, user_id):
         return redirect("admin_recharge")
 
     with transaction.atomic():
-        profile = ensure_profile(target_user)
-        profile.balance += amount
-        profile.save(update_fields=["balance"])
+        profile = apply_recharge_credit(
+            target_user,
+            amount,
+            acting_user=request.user,
+        )
         Transaction.objects.create(
             user=target_user,
             transaction_type="recharge",

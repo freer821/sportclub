@@ -23,6 +23,7 @@ urlpatterns += i18n_patterns(
     path('admin/members/<int:user_id>/', views.admin_member_edit, name='admin_member_edit'),
     path('admin/members/<int:user_id>/check-in-qr.svg', views.admin_member_checkin_qr_svg, name='admin_member_checkin_qr_svg'),
     path('admin/recharge/', views.admin_recharge, name='admin_recharge'),
+    path('admin/fees/', views.admin_fee_management, name='admin_fee_management'),
     path('admin/recharge/<int:user_id>/quick/', views.quick_recharge, name='quick_recharge'),
     path('admin/recharge/<int:transaction_id>/approve/', views.approve_admin_recharge, name='approve_admin_recharge'),
     path('admin/recharge/<int:transaction_id>/update/', views.update_admin_recharge, name='update_admin_recharge'),

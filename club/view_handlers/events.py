@@ -11,9 +11,9 @@ from django.utils import timezone
 
 from club.forms import EventForm
 from club.models import Event, Participation, SiteSettings, Transaction
-from club.services import CheckInError, register_user_for_event
+from club.services import CheckInError, cancel_event_fee_charge, ensure_profile, register_user_for_event
 
-from .shared import ensure_profile, upcoming_events_queryset
+from .shared import upcoming_events_queryset
 
 logger = logging.getLogger(__name__)
 
@@ -89,16 +89,22 @@ def leave_event(request, event_id):
         participation.save(update_fields=["status"])
 
         profile = ensure_profile(request.user)
-        profile.balance += event_price
-        profile.save(update_fields=["balance"])
-
-        Transaction.objects.create(
-            user=request.user,
-            transaction_type="refund",
-            amount=event_price,
-            description=f"Refund for cancelled: {event.title}",
-            event=event,
+        charge = cancel_event_fee_charge(
+            request.user,
+            event,
+            note=f"活动已取消报名：{event.title}",
         )
+        if charge and charge.payment_transaction_id:
+            profile.balance += event_price
+            profile.save(update_fields=["balance"])
+
+            Transaction.objects.create(
+                user=request.user,
+                transaction_type="refund",
+                amount=event_price,
+                description=f"Refund for cancelled: {event.title}",
+                event=event,
+            )
 
     messages.success(
         request,
@@ -203,9 +209,8 @@ def admin_event_delete(request, event_id):
     return redirect("admin_events")
 
 
-@login_required
 def api_events(request):
-    events = upcoming_events_queryset()
+    events = Event.objects.all().order_by("date")
     data = [
         {
             "id": event.id,

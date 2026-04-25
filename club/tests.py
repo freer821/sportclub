@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from club.models import Event, Participation, Transaction, UserProfile
+from club.models import Event, EventFeeCharge, Participation, Transaction, UserProfile
 from club.forms import EventForm
 from club.services import build_checkin_token
 
@@ -138,6 +138,20 @@ class EventFlowTests(TestCase):
 
     def test_leave_event_saves_cancelled_status(self):
         Participation.objects.create(user=self.user, event=self.event, status='registered')
+        payment_tx = Transaction.objects.create(
+            user=self.user,
+            event=self.event,
+            transaction_type='event_fee',
+            amount=Decimal('5.00'),
+            description='Event: Weekend Match',
+        )
+        EventFeeCharge.objects.create(
+            user=self.user,
+            event=self.event,
+            amount=Decimal('5.00'),
+            status=EventFeeCharge.STATUS_SETTLED,
+            payment_transaction=payment_tx,
+        )
         self.profile.balance = Decimal('10.00')
         self.profile.save(update_fields=['balance'])
 
@@ -242,6 +256,12 @@ class QRCheckInTests(TestCase):
             amount=Decimal('6.00'),
             description='Event: Started Match',
         )
+        EventFeeCharge.objects.create(
+            user=self.user,
+            event=self.started_event,
+            amount=Decimal('6.00'),
+            status=EventFeeCharge.STATUS_SETTLED,
+        )
 
         response = self.client.post(
             reverse('qr_checkin'),
@@ -285,15 +305,39 @@ class QRCheckInTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.profile.refresh_from_db()
         participation = Participation.objects.get(user=self.user, event=self.started_event)
-        tx = Transaction.objects.get(
+        charge = EventFeeCharge.objects.get(
             user=self.user,
             event=self.started_event,
-            transaction_type='event_fee',
         )
         self.assertEqual(participation.status, Participation.STATUS_ATTENDED)
         self.assertEqual(self.profile.balance, Decimal('2.00'))
-        self.assertEqual(tx.status, 'pending')
-        self.assertIn('待补缴 6.00EUR', tx.note)
+        self.assertEqual(
+            Transaction.objects.filter(
+                user=self.user,
+                event=self.started_event,
+                transaction_type='event_fee',
+            ).count(),
+            0,
+        )
+        self.assertEqual(charge.status, EventFeeCharge.STATUS_PENDING)
+        self.assertIn('待补缴 6.00EUR', charge.note)
+
+    def test_qr_checkin_prefers_today_event_over_older_ongoing_event(self):
+        older_ongoing = Event.objects.create(
+            title='Yesterday Match',
+            description='older',
+            location='Gym C',
+            date=timezone.now() - timezone.timedelta(days=1, hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=2),
+            max_participants=20,
+            price=Decimal('4.00'),
+        )
+
+        response = self.client.get(reverse('qr_checkin'), {'token': self.token})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['selected_event'].id, self.started_event.id)
+        self.assertNotEqual(response.context['selected_event'].id, older_ongoing.id)
 
 
 class AdminRechargeTests(TestCase):
@@ -360,6 +404,47 @@ class AdminRechargeTests(TestCase):
         self.assertEqual(tx.status, 'approved')
         self.assertEqual(tx.approved_by, self.admin)
         self.assertEqual(member_profile.balance, Decimal('18.00'))
+
+    def test_admin_approved_recharge_settles_pending_event_fee(self):
+        EventFeeCharge.objects.create(
+            user=self.member,
+            event=Event.objects.create(
+                title='Training',
+                description='fee',
+                location='Court A',
+                date=timezone.now(),
+                end_time=timezone.now() + timezone.timedelta(hours=2),
+            ),
+            amount=Decimal('6.00'),
+            status=EventFeeCharge.STATUS_PENDING,
+            note='余额不足，签到已记录，待补缴 6.00EUR。',
+        )
+        tx = Transaction.objects.create(
+            user=self.member,
+            transaction_type='recharge',
+            amount=Decimal('18.00'),
+            source='paypal',
+            note='waiting for approval',
+            status='pending',
+            description='充值申请（PayPal）',
+        )
+
+        response = self.client.post(
+            reverse('approve_admin_recharge', args=[tx.id]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        member_profile = UserProfile.objects.get(user=self.member)
+        event_fee_charge = EventFeeCharge.objects.get(user=self.member)
+        event_fee_tx = Transaction.objects.get(
+            user=self.member,
+            transaction_type='event_fee',
+        )
+        self.assertEqual(member_profile.balance, Decimal('12.00'))
+        self.assertEqual(event_fee_charge.status, EventFeeCharge.STATUS_SETTLED)
+        self.assertEqual(event_fee_tx.status, 'approved')
+        self.assertEqual(event_fee_tx.amount, Decimal('6.00'))
 
     def test_admin_can_update_pending_recharge_request_details(self):
         tx = Transaction.objects.create(
@@ -446,6 +531,62 @@ class AdminDashboardStatsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['registered_member_count'], 2)
         self.assertTrue(all(not profile.user.is_staff for profile in response.context['all_users']))
+
+
+class AdminFeeManagementTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(username='admin', password='StrongPass12345', is_staff=True)
+        self.member = User.objects.create_user(username='member', password='StrongPass12345')
+        self.event = Event.objects.create(
+            title='Revenue Match',
+            description='fees',
+            location='Court A',
+            date=timezone.now() + timezone.timedelta(days=1),
+            end_time=timezone.now() + timezone.timedelta(days=1, hours=2),
+            price=Decimal('8.00'),
+        )
+        self.client.login(username='admin', password='StrongPass12345')
+
+    def test_admin_fee_management_shows_pending_and_approved_fees(self):
+        pending_event = Event.objects.create(
+            title='Pending Match',
+            description='fees',
+            location='Court B',
+            date=timezone.now() + timezone.timedelta(days=2),
+            end_time=timezone.now() + timezone.timedelta(days=2, hours=2),
+            price=Decimal('8.00'),
+        )
+        EventFeeCharge.objects.create(
+            user=self.member,
+            event=pending_event,
+            amount=Decimal('8.00'),
+            status=EventFeeCharge.STATUS_PENDING,
+            note='待补缴',
+        )
+        approved_tx = Transaction.objects.create(
+            user=self.member,
+            event=self.event,
+            transaction_type='event_fee',
+            amount=Decimal('8.00'),
+            status='approved',
+            description='Event: Revenue Match',
+        )
+        EventFeeCharge.objects.create(
+            user=self.member,
+            event=self.event,
+            amount=Decimal('8.00'),
+            status=EventFeeCharge.STATUS_SETTLED,
+            payment_transaction=approved_tx,
+        )
+
+        response = self.client.get(reverse('admin_fee_management'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '待补缴扣费')
+        self.assertContains(response, '最近已扣费记录')
+        self.assertContains(response, 'Revenue Match')
+        self.assertEqual(response.context['approved_fee_total'], Decimal('8.00'))
+        self.assertEqual(response.context['pending_fee_total'], Decimal('8.00'))
 
 
 class EventCreationTests(TestCase):
@@ -573,6 +714,36 @@ class UpcomingEventsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         upcoming_ids = [event.id for event in response.context['upcoming_events']]
         self.assertIn(ongoing.id, upcoming_ids)
+
+
+class ApiEventsTests(TestCase):
+    def test_api_events_returns_existing_events_for_calendar(self):
+        past_event = Event.objects.create(
+            title='Past Match',
+            description='already created',
+            location='Gym',
+            date=timezone.now() - timezone.timedelta(days=2),
+            end_time=timezone.now() - timezone.timedelta(days=2) + timezone.timedelta(hours=2),
+            max_participants=20,
+            price=Decimal('5.00'),
+        )
+        future_event = Event.objects.create(
+            title='Future Match',
+            description='scheduled',
+            location='Gym',
+            date=timezone.now() + timezone.timedelta(days=2),
+            end_time=timezone.now() + timezone.timedelta(days=2, hours=2),
+            max_participants=20,
+            price=Decimal('5.00'),
+        )
+
+        response = self.client.get(reverse('api_events'))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        ids = {item['id'] for item in payload}
+        self.assertIn(past_event.id, ids)
+        self.assertIn(future_event.id, ids)
 
 
 class EventListTests(TestCase):

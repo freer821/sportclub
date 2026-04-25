@@ -1,4 +1,5 @@
 from club.view_handlers import (
+    admin_fee_management,
     admin_member_checkin_qr_svg,
     admin_event_delete,
     admin_events,
@@ -26,6 +27,7 @@ from club.view_handlers import (
 )
 
 __all__ = [
+    "admin_fee_management",
     "admin_member_checkin_qr_svg",
     "admin_event_delete",
     "admin_events",

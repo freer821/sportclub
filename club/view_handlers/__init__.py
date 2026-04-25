@@ -13,6 +13,7 @@ from .events import (
 from .members import admin_member_edit, admin_members, member_profile
 from .public import home, register
 from .recharge import (
+    admin_fee_management,
     admin_recharge,
     approve_admin_recharge,
     delete_admin_recharge,
@@ -22,6 +23,7 @@ from .recharge import (
 )
 
 __all__ = [
+    "admin_fee_management",
     "admin_member_checkin_qr_svg",
     "admin_event_delete",
     "admin_events",

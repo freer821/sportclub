@@ -70,3 +70,46 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.transaction_type} - {self.amount}EUR"
+
+
+class EventFeeCharge(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_SETTLED = "settled"
+    STATUS_CANCELLED = "cancelled"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "待补缴"),
+        (STATUS_SETTLED, "已结清"),
+        (STATUS_CANCELLED, "已取消"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="event_fee_charges")
+    event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="fee_charges")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    note = models.TextField(blank=True, default="")
+    payment_transaction = models.ForeignKey(
+        "Transaction",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="event_fee_charges",
+    )
+    settled_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="settled_event_fee_charges",
+    )
+    settled_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "event"], name="unique_event_fee_charge")
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event.title} - {self.status}"

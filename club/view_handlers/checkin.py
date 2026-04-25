@@ -16,6 +16,7 @@ from club.services import (
     CheckInError,
     available_checkin_events_queryset,
     build_checkin_link,
+    default_checkin_event,
     register_user_for_event,
     resolve_user_from_checkin_token,
 )
@@ -81,13 +82,14 @@ def qr_checkin(request):
 
     member = _resolve_checkin_user(token)
     events = available_checkin_events_queryset()
+    preferred_event = default_checkin_event(events)
 
     initial_event_id = request.GET.get("event")
     initial = {}
     if initial_event_id and events.filter(pk=initial_event_id).exists():
         initial["event"] = initial_event_id
-    elif events.exists():
-        initial["event"] = events.first().pk
+    elif preferred_event is not None:
+        initial["event"] = preferred_event.pk
 
     if request.method == "POST":
         form = QRCheckInForm(request.POST, events=events)
@@ -149,7 +151,7 @@ def qr_checkin(request):
     else:
         form = QRCheckInForm(events=events, initial=initial)
 
-    selected_event = _selected_event_from_form(form, events)
+    selected_event = _selected_event_from_form(form, events) or preferred_event
     return render(
         request,
         "club/qr_checkin.html",

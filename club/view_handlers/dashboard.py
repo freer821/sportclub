@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.shortcuts import render
 
-from club.models import SiteSettings, Transaction, UserProfile
+from club.models import EventFeeCharge, SiteSettings, Transaction, UserProfile
 from club.models.events import Participation
 
 from .shared import ensure_profile, upcoming_events_queryset
@@ -59,11 +59,19 @@ def dashboard(request):
         participations__status__in=Participation.ACTIVE_STATUSES,
     )[:5]
     default_price = SiteSettings.get_default_price()
+    pending_fee_total = (
+        EventFeeCharge.objects.filter(
+            user=request.user,
+            status=EventFeeCharge.STATUS_PENDING,
+        ).aggregate(total=Sum("amount")).get("total")
+        or decimal.Decimal("0")
+    )
     context = {
         "balance": profile.balance,
         "upcoming_events": upcoming_events,
         "my_events": my_events,
         "event_price": default_price,
+        "pending_fee_total": pending_fee_total,
     }
     return render(request, "club/dashboard.html", context)
 
