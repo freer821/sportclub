@@ -22,7 +22,7 @@ class Event(models.Model):
 
     @property
     def participant_count(self):
-        return self.participations.filter(status='registered').count()
+        return self.participations.filter(status__in=Participation.ACTIVE_STATUSES).count()
 
     @property
     def is_full(self):
@@ -41,14 +41,18 @@ class Event(models.Model):
 
 
 class Participation(models.Model):
+    STATUS_REGISTERED = 'registered'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_ATTENDED = 'attended'
+    ACTIVE_STATUSES = [STATUS_REGISTERED, STATUS_ATTENDED]
     STATUS_CHOICES = [
-        ('registered', 'Registered'),
-        ('cancelled', 'Cancelled'),
-        ('attended', 'Attended'),
+        (STATUS_REGISTERED, 'Registered'),
+        (STATUS_CANCELLED, 'Cancelled'),
+        (STATUS_ATTENDED, 'Attended'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='participations')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participations')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='registered')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_REGISTERED)
     registered_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

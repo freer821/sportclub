@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}注册{% endblock %}
 
 {% block extra_css %}
 <style>
     .auth-container {
-        max-width: 520px;
+        max-width: 940px;
         margin: 0 auto;
         padding-top: 40px;
     }
@@ -63,6 +63,58 @@
         padding: 40px;
     }
 
+    .form-section + .form-section {
+        margin-top: 32px;
+    }
+
+    .section-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.8rem;
+        margin-bottom: 16px;
+    }
+
+    .section-copy {
+        color: var(--text-secondary);
+        margin-bottom: 18px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .download-card {
+        margin-top: 32px;
+        padding: 20px 22px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-secondary);
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+    }
+
+    .download-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .download-copy {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .errorlist,
+    .field-errors {
+        color: var(--accent-red);
+        font-size: 0.85rem;
+        margin-top: 6px;
+        padding-left: 0;
+        list-style: none;
+    }
+
     .auth-footer {
         text-align: center;
         padding: 24px 40px 32px;
@@ -84,20 +136,25 @@
         width: 100%;
         padding: 16px 24px;
         font-size: 1.05rem;
+        margin-top: 28px;
     }
 
-    .help-text {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-        margin-top: 6px;
-    }
+    @media (max-width: 767.98px) {
+        .auth-body,
+        .auth-header,
+        .auth-footer {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
 
-    .errorlist {
-        color: var(--accent-red);
-        font-size: 0.85rem;
-        margin-top: 6px;
-        padding-left: 0;
-        list-style: none;
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .download-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 {% endblock %}
@@ -108,15 +165,114 @@
         <div class="auth-header">
             <div class="auth-icon">🆕</div>
             <h1 class="auth-title">加入我们</h1>
-            <p class="auth-subtitle">创建账户，开始您的篮球之旅</p>
+            <p class="auth-subtitle">注册账户并完善会员资料</p>
         </div>
         <div class="auth-body">
             <form method="post">
                 {% csrf_token %}
-                {{ form|crispy }}
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary btn-auth">注册</button>
+                {% if form.non_field_errors %}
+                    <ul class="errorlist">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <section class="form-section">
+                    <h2 class="section-title">账号信息</h2>
+                    <p class="section-copy">用于登录系统和接收俱乐部通知。</p>
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {{ form.username.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                            {{ form.password1 }}
+                            {{ form.password1.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                            {{ form.password2 }}
+                            {{ form.password2.errors }}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h2 class="section-title">会员资料</h2>
+                    <p class="section-copy">这些字段对应纸质报名表中的基础会员档案。</p>
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {{ form.first_name.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {{ form.last_name.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                            {{ form.gender }}
+                            {{ form.gender.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.date_of_birth.id_for_label }}">{{ form.date_of_birth.label }}</label>
+                            {{ form.date_of_birth }}
+                            {{ form.date_of_birth.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.nationality.id_for_label }}">{{ form.nationality.label }}</label>
+                            {{ form.nationality }}
+                            {{ form.nationality.errors }}
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label" for="{{ form.street_address.id_for_label }}">{{ form.street_address.label }}</label>
+                            {{ form.street_address }}
+                            {{ form.street_address.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.postal_code.id_for_label }}">{{ form.postal_code.label }}</label>
+                            {{ form.postal_code }}
+                            {{ form.postal_code.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+                            {{ form.city }}
+                            {{ form.city.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.membership_type.id_for_label }}">{{ form.membership_type.label }}</label>
+                            {{ form.membership_type }}
+                            {{ form.membership_type.errors }}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="download-card">
+                    <div>
+                        <div class="download-title">报名表与 SEPA 授权 PDF</div>
+                        <p class="download-copy">系统不录入 SEPA 扣款信息，需要纸质版本时可直接下载原表。</p>
+                    </div>
+                    <a class="btn btn-outline" href="{% static 'documents/aufnahmeantrag_rc2025.pdf' %}" target="_blank" rel="noopener">
+                        下载 PDF
+                    </a>
                 </div>
+
+                <button type="submit" class="btn btn-primary btn-auth">注册</button>
             </form>
         </div>
         <div class="auth-footer">

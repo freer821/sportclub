@@ -7,6 +7,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 from club.models import SiteSettings, Transaction, UserProfile
+from club.models.events import Participation
 
 from .shared import ensure_profile, upcoming_events_queryset
 
@@ -51,11 +52,11 @@ def dashboard(request):
 
     upcoming_events = upcoming_events_queryset().exclude(
         participations__user=request.user,
-        participations__status="registered",
+        participations__status__in=Participation.ACTIVE_STATUSES,
     )[:5]
     my_events = upcoming_events_queryset().filter(
         participations__user=request.user,
-        participations__status="registered",
+        participations__status__in=Participation.ACTIVE_STATUSES,
     )[:5]
     default_price = SiteSettings.get_default_price()
     context = {

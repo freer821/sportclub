@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% get_current_language as CURRENT_LANGUAGE %}{% if CURRENT_LANGUAGE == 'de' %}Check-in{% elif CURRENT_LANGUAGE == 'en' %}Check-in{% else %}活动签到{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkin-shell {
+        max-width: 760px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+    }
+
+    .checkin-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .checkin-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .checkin-body {
+        padding: 28px;
+    }
+
+    .event-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+    }
+
+    .event-item {
+        padding: 14px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: var(--bg-secondary);
+    }
+
+    .event-label {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 4px;
+    }
+
+    @media (max-width: 767.98px) {
+        .event-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">{% if CURRENT_LANGUAGE == 'de' %}Check-in{% elif CURRENT_LANGUAGE == 'en' %}Event Check-in{% else %}活动签到{% endif %}</h1>
+        <p class="page-subtitle">{% if CURRENT_LANGUAGE == 'de' %}Bitte Veranstaltung bestaetigen und den Check-in absenden. Die Gebuehr wird dabei automatisch erfasst.{% elif CURRENT_LANGUAGE == 'en' %}Confirm the event and submit your check-in. The fee will be recorded automatically.{% else %}确认活动信息后提交一次签到，系统会同步记录费用。{% endif %}</p>
+    </div>
+</div>
+
+<div class="checkin-shell animate-in">
+    <div class="checkin-card">
+        <div class="checkin-header">
+            <h2 class="card-title">{{ member.get_full_name|default:member.username }}</h2>
+            <p class="card-subtitle">@{{ member.username }}</p>
+        </div>
+        <div class="checkin-body">
+            {% if has_available_events %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.event.id_for_label }}">{% if CURRENT_LANGUAGE == 'de' %}Veranstaltung{% elif CURRENT_LANGUAGE == 'en' %}Event{% else %}活动{% endif %}</label>
+                        {{ form.event }}
+                        {{ form.event.errors }}
+                    </div>
+
+                    {% if selected_event %}
+                    <div class="event-grid">
+                        <div class="event-item">
+                            <div class="event-label">{% if CURRENT_LANGUAGE == 'de' %}Veranstaltung{% elif CURRENT_LANGUAGE == 'en' %}Event{% else %}活动{% endif %}</div>
+                            <div>{{ selected_event.title }}</div>
+                        </div>
+                        <div class="event-item">
+                            <div class="event-label">{% if CURRENT_LANGUAGE == 'de' %}Zeit{% elif CURRENT_LANGUAGE == 'en' %}Time{% else %}时间{% endif %}</div>
+                            <div>{{ selected_event.date|date:"Y-m-d H:i" }}{% if selected_event.end_time %} - {{ selected_event.end_time|date:"H:i" }}{% endif %}</div>
+                        </div>
+                        <div class="event-item">
+                            <div class="event-label">{% if CURRENT_LANGUAGE == 'de' %}Ort{% elif CURRENT_LANGUAGE == 'en' %}Location{% else %}地点{% endif %}</div>
+                            <div>{{ selected_event.location }}</div>
+                        </div>
+                        <div class="event-item">
+                            <div class="event-label">{% if CURRENT_LANGUAGE == 'de' %}Gebuehr{% elif CURRENT_LANGUAGE == 'en' %}Fee{% else %}费用{% endif %}</div>
+                            <div>{{ selected_event.event_price }} EUR</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary w-100 mt-4">{% if CURRENT_LANGUAGE == 'de' %}Check-in bestaetigen{% elif CURRENT_LANGUAGE == 'en' %}Confirm Check-in{% else %}确认打卡{% endif %}</button>
+                </form>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏀</div>
+                    <h3 class="empty-state-title">{% if CURRENT_LANGUAGE == 'de' %}Derzeit ist kein Check-in moeglich{% elif CURRENT_LANGUAGE == 'en' %}No check-in event is available right now{% else %}当前没有可打卡的活动{% endif %}</h3>
+                    <p class="empty-state-desc">{% if CURRENT_LANGUAGE == 'de' %}Hier erscheinen nur Veranstaltungen, die bereits begonnen haben und noch nicht beendet sind.{% elif CURRENT_LANGUAGE == 'en' %}Only events that have started and not yet ended appear here.{% else %}只有已经开始且尚未结束的活动才会出现在这里。{% endif %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if has_available_events %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const eventSelect = document.getElementById('{{ form.event.id_for_label }}');
+        if (!eventSelect) {
+            return;
+        }
+
+        eventSelect.addEventListener('change', function() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('token', '{{ token|escapejs }}');
+            params.set('event', this.value);
+            window.location.search = params.toString();
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

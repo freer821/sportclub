@@ -23,8 +23,16 @@
                 <a class="brand" href="{% url 'home' %}">
                     <div class="brand-icon">🏀</div>
                     <div class="brand-text">
-                        法兰克福篮球
-                        <span>华人篮球俱乐部</span>
+                        {% if CURRENT_LANGUAGE == 'de' %}
+                            Frankfurt Basketball
+                            <span>Chinesischer Basketballclub</span>
+                        {% elif CURRENT_LANGUAGE == 'en' %}
+                            Frankfurt Basketball
+                            <span>Chinese Basketball Club</span>
+                        {% else %}
+                            法兰克福篮球
+                            <span>华人篮球俱乐部</span>
+                        {% endif %}
                     </div>
                 </a>
                 <form class="brand-lang-form" method="post" action="{% url 'set_language' %}">
@@ -47,7 +55,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                             </svg>
-                            管理后台
+                            {% if CURRENT_LANGUAGE == 'de' %}Adminbereich{% elif CURRENT_LANGUAGE == 'en' %}Admin Dashboard{% else %}管理后台{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -55,7 +63,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                             </svg>
-                            会员管理
+                            {% if CURRENT_LANGUAGE == 'de' %}Mitglieder{% elif CURRENT_LANGUAGE == 'en' %}Members{% else %}会员管理{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -63,7 +71,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            充值管理
+                            {% if CURRENT_LANGUAGE == 'de' %}Aufladungen{% elif CURRENT_LANGUAGE == 'en' %}Recharges{% else %}充值管理{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -71,7 +79,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                             </svg>
-                            活动管理
+                            {% if CURRENT_LANGUAGE == 'de' %}Veranstaltungen{% elif CURRENT_LANGUAGE == 'en' %}Events{% else %}活动管理{% endif %}
                         </a>
                     </div>
                     {% else %}
@@ -80,7 +88,15 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                             </svg>
-                            个人中心
+                            {% if CURRENT_LANGUAGE == 'de' %}Mein Bereich{% elif CURRENT_LANGUAGE == 'en' %}Dashboard{% else %}个人中心{% endif %}
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link {% if 'profile' in request.path %}active{% endif %}" href="{% url 'member_profile' %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 6.75h9m-9 5.25h9m-9 5.25h6.75M6 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75z" />
+                            </svg>
+                            {% if CURRENT_LANGUAGE == 'de' %}Mein Profil{% elif CURRENT_LANGUAGE == 'en' %}My Profile{% else %}我的资料{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -88,7 +104,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                             </svg>
-                            活动
+                            {% if CURRENT_LANGUAGE == 'de' %}Veranstaltungen{% elif CURRENT_LANGUAGE == 'en' %}Events{% else %}活动{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -96,7 +112,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            记录
+                            {% if CURRENT_LANGUAGE == 'de' %}Verlauf{% elif CURRENT_LANGUAGE == 'en' %}History{% else %}记录{% endif %}
                         </a>
                     </div>
                     <div class="nav-item">
@@ -104,7 +120,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
-                            充值
+                            {% if CURRENT_LANGUAGE == 'de' %}Aufladen{% elif CURRENT_LANGUAGE == 'en' %}Recharge{% else %}充值{% endif %}
                         </a>
                     </div>
                     {% endif %}
@@ -117,7 +133,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                             </svg>
-                            退出
+                            {% if CURRENT_LANGUAGE == 'de' %}Abmelden{% elif CURRENT_LANGUAGE == 'en' %}Logout{% else %}退出{% endif %}
                         </a>
                     </div>
                 </div>
@@ -127,20 +143,20 @@
         <header class="mobile-header">
             <div class="mobile-brand">
                 <div class="mobile-brand-icon">🏀</div>
-                <div class="brand-text" style="font-size: 1.1rem;">法兰克福篮球</div>
+                <div class="brand-text" style="font-size: 1.1rem;">{% if CURRENT_LANGUAGE == 'de' or CURRENT_LANGUAGE == 'en' %}Frankfurt Basketball{% else %}法兰克福篮球{% endif %}</div>
             </div>
             <button class="mobile-toggle" onclick="toggleMobileNav()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
-                菜单
+                {% if CURRENT_LANGUAGE == 'de' %}Menue{% elif CURRENT_LANGUAGE == 'en' %}Menu{% else %}菜单{% endif %}
             </button>
         </header>
 
         <nav class="mobile-nav" id="mobileNav">
             <div class="mobile-nav-content">
                 <div class="mobile-nav-header">
-                    <span class="mobile-nav-title">🏀 导航</span>
+                    <span class="mobile-nav-title">🏀 {% if CURRENT_LANGUAGE == 'de' %}Navigation{% elif CURRENT_LANGUAGE == 'en' %}Navigation{% else %}导航{% endif %}</span>
                     <button class="mobile-nav-close" onclick="toggleMobileNav()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -149,17 +165,18 @@
                 </div>
                 <div class="mobile-nav-links">
                     {% if user.is_staff %}
-                    <a class="mobile-nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">🏠 管理后台</a>
-                    <a class="mobile-nav-link {% if '/admin/members' in request.path %}active{% endif %}" href="{% url 'admin_members' %}">👥 会员管理</a>
-                    <a class="mobile-nav-link {% if '/admin/recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">💰 充值管理</a>
-                    <a class="mobile-nav-link {% if '/admin/events' in request.path or request.path == '/events/create/' %}active{% endif %}" href="{% url 'admin_events' %}">📅 活动管理</a>
+                    <a class="mobile-nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">🏠 {% if CURRENT_LANGUAGE == 'de' %}Adminbereich{% elif CURRENT_LANGUAGE == 'en' %}Admin Dashboard{% else %}管理后台{% endif %}</a>
+                    <a class="mobile-nav-link {% if '/admin/members' in request.path %}active{% endif %}" href="{% url 'admin_members' %}">👥 {% if CURRENT_LANGUAGE == 'de' %}Mitglieder{% elif CURRENT_LANGUAGE == 'en' %}Members{% else %}会员管理{% endif %}</a>
+                    <a class="mobile-nav-link {% if '/admin/recharge' in request.path %}active{% endif %}" href="{% url 'admin_recharge' %}">💰 {% if CURRENT_LANGUAGE == 'de' %}Aufladungen{% elif CURRENT_LANGUAGE == 'en' %}Recharges{% else %}充值管理{% endif %}</a>
+                    <a class="mobile-nav-link {% if '/admin/events' in request.path or request.path == '/events/create/' %}active{% endif %}" href="{% url 'admin_events' %}">📅 {% if CURRENT_LANGUAGE == 'de' %}Veranstaltungen{% elif CURRENT_LANGUAGE == 'en' %}Events{% else %}活动管理{% endif %}</a>
                     {% else %}
-                    <a class="mobile-nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">👤 个人中心</a>
-                    <a class="mobile-nav-link {% if '/events/' == request.path or '/events/' in request.path and '/create/' not in request.path %}active{% endif %}" href="{% url 'event_list' %}">📅 活动</a>
-                    <a class="mobile-nav-link {% if 'history' in request.path %}active{% endif %}" href="{% url 'history' %}">📜 记录</a>
-                    <a class="mobile-nav-link {% if 'recharge' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'recharge' %}">💳 充值</a>
+                    <a class="mobile-nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'dashboard' %}">👤 {% if CURRENT_LANGUAGE == 'de' %}Mein Bereich{% elif CURRENT_LANGUAGE == 'en' %}Dashboard{% else %}个人中心{% endif %}</a>
+                    <a class="mobile-nav-link {% if 'profile' in request.path %}active{% endif %}" href="{% url 'member_profile' %}">📝 {% if CURRENT_LANGUAGE == 'de' %}Mein Profil{% elif CURRENT_LANGUAGE == 'en' %}My Profile{% else %}我的资料{% endif %}</a>
+                    <a class="mobile-nav-link {% if '/events/' == request.path or '/events/' in request.path and '/create/' not in request.path %}active{% endif %}" href="{% url 'event_list' %}">📅 {% if CURRENT_LANGUAGE == 'de' %}Veranstaltungen{% elif CURRENT_LANGUAGE == 'en' %}Events{% else %}活动{% endif %}</a>
+                    <a class="mobile-nav-link {% if 'history' in request.path %}active{% endif %}" href="{% url 'history' %}">📜 {% if CURRENT_LANGUAGE == 'de' %}Verlauf{% elif CURRENT_LANGUAGE == 'en' %}History{% else %}记录{% endif %}</a>
+                    <a class="mobile-nav-link {% if 'recharge' in request.path and 'admin' not in request.path %}active{% endif %}" href="{% url 'recharge' %}">💳 {% if CURRENT_LANGUAGE == 'de' %}Aufladen{% elif CURRENT_LANGUAGE == 'en' %}Recharge{% else %}充值{% endif %}</a>
                     {% endif %}
-                    <a class="mobile-nav-link" href="{% url 'logout' %}">🚪 退出</a>
+                    <a class="mobile-nav-link" href="{% url 'logout' %}">🚪 {% if CURRENT_LANGUAGE == 'de' %}Abmelden{% elif CURRENT_LANGUAGE == 'en' %}Logout{% else %}退出{% endif %}</a>
                 </div>
             </div>
         </nav>
@@ -171,8 +188,16 @@
                 <a class="public-brand" href="{% url 'home' %}" style="display:flex;align-items:center;gap:14px;min-width:0;width:fit-content;">
                     <div class="brand-icon">🏀</div>
                     <div class="brand-text">
-                        法兰克福篮球
-                        <span>华人篮球俱乐部</span>
+                        {% if CURRENT_LANGUAGE == 'de' %}
+                            Frankfurt Basketball
+                            <span>Chinesischer Basketballclub</span>
+                        {% elif CURRENT_LANGUAGE == 'en' %}
+                            Frankfurt Basketball
+                            <span>Chinese Basketball Club</span>
+                        {% else %}
+                            法兰克福篮球
+                            <span>华人篮球俱乐部</span>
+                        {% endif %}
                     </div>
                 </a>
                 <div class="public-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap;justify-self:end;align-self:center;min-width:max-content;">
@@ -185,8 +210,8 @@
                             <option value="en"{% if CURRENT_LANGUAGE == 'en' %} selected{% endif %}>🇬🇧 English</option>
                         </select>
                     </form>
-                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm">登录</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">立即加入</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm">{% if CURRENT_LANGUAGE == 'de' %}Anmelden{% elif CURRENT_LANGUAGE == 'en' %}Login{% else %}登录{% endif %}</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">{% if CURRENT_LANGUAGE == 'de' %}Jetzt beitreten{% elif CURRENT_LANGUAGE == 'en' %}Join Now{% else %}立即加入{% endif %}</a>
                 </div>
             </header>
             {% endif %}
@@ -211,8 +236,7 @@
             </div>
             <footer>
                 <div class="container text-center">
-                    <p>© 2024 法兰克福华人篮球俱乐部 | 每周末 18:00-22:00</p>
-                    <p class="mt-2">📍 Gymnasium Nord (Westhausen), Muckermannstraße 1, 60488 Frankfurt</p>
+                    <p>© {% now "Y" %} Frank Geng in Frankfurt am Main</p>
                 </div>
             </footer>
         </main>
@@ -220,7 +244,7 @@
 
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">加载中...</div>
+        <div class="loading-text">{% if CURRENT_LANGUAGE == 'de' %}Wird geladen...{% elif CURRENT_LANGUAGE == 'en' %}Loading...{% else %}加载中...{% endif %}</div>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>

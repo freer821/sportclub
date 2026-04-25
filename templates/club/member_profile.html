@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}我的资料{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-shell {
+        max-width: 980px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+        gap: 24px;
+    }
+
+    .profile-card,
+    .profile-side {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .profile-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .profile-body {
+        padding: 28px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .detail-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .detail-item {
+        padding: 14px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+    }
+
+    .detail-label {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+    }
+
+    .download-box {
+        padding: 18px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 214, 10, 0.08);
+        border: 1px solid rgba(255, 214, 10, 0.14);
+    }
+
+    .qr-card {
+        margin-top: 24px;
+        padding: 20px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .qr-image {
+        width: 100%;
+        max-width: 260px;
+        display: block;
+        margin: 0 auto 16px;
+        background: #fff;
+        padding: 12px;
+        border-radius: var(--radius-sm);
+    }
+
+    .qr-link {
+        width: 100%;
+        margin: 12px 0;
+    }
+
+    .download-box p {
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+    }
+
+    .btn-save {
+        margin-top: 24px;
+        width: 100%;
+    }
+
+    .errorlist {
+        color: var(--accent-red);
+        font-size: 0.85rem;
+        margin-top: 6px;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    @media (max-width: 991.98px) {
+        .profile-shell {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">我的资料</h1>
+        <p class="page-subtitle">维护个人会员档案与联系方式</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline">返回个人中心</a>
+</div>
+
+<div class="profile-shell animate-in">
+    <div class="profile-card">
+        <div class="profile-header">
+            <h2 class="card-title">{{ request.user.get_full_name|default:request.user.username }}</h2>
+            <p class="card-subtitle">@{{ request.user.username }}</p>
+        </div>
+        <div class="profile-body">
+            <form method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <ul class="errorlist">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.gender.id_for_label }}">{{ form.gender.label }}</label>
+                        {{ form.gender }}
+                        {{ form.gender.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.date_of_birth.id_for_label }}">{{ form.date_of_birth.label }}</label>
+                        {{ form.date_of_birth }}
+                        {{ form.date_of_birth.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.nationality.id_for_label }}">{{ form.nationality.label }}</label>
+                        {{ form.nationality }}
+                        {{ form.nationality.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.membership_type.id_for_label }}">{{ form.membership_type.label }}</label>
+                        {{ form.membership_type }}
+                        {{ form.membership_type.errors }}
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label" for="{{ form.street_address.id_for_label }}">{{ form.street_address.label }}</label>
+                        {{ form.street_address }}
+                        {{ form.street_address.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.postal_code.id_for_label }}">{{ form.postal_code.label }}</label>
+                        {{ form.postal_code }}
+                        {{ form.postal_code.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+                        {{ form.city }}
+                        {{ form.city.errors }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-save">保存资料</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="profile-side">
+        <div class="profile-header">
+            <h3 class="card-title">会员信息</h3>
+        </div>
+        <div class="profile-body">
+            <div class="detail-list">
+                <div class="detail-item">
+                    <div class="detail-label">账户余额</div>
+                    <div>{{ profile.balance }} EUR</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">入会日期</div>
+                    <div>{{ profile.membership_start_date|date:"Y-m-d"|default:"-" }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">资料更新时间</div>
+                    <div>{{ profile.profile_updated_at|date:"Y-m-d H:i"|default:"-" }}</div>
+                </div>
+            </div>
+
+            <div class="download-box mt-4">
+                <h4 class="card-title" style="font-size: 1.1rem;">报名表与 SEPA PDF</h4>
+                <p>系统内不处理 SEPA 扣款授权，需要原始表格时可直接下载。</p>
+                <a class="btn btn-outline w-100" href="{% static 'documents/aufnahmeantrag_rc2025.pdf' %}" target="_blank" rel="noopener">
+                    下载 PDF
+                </a>
+            </div>
+
+            <div class="qr-card">
+                <h4 class="card-title" style="font-size: 1.1rem;">我的签到二维码</h4>
+                <p class="page-subtitle" style="margin-bottom: 16px;">到场后扫码即可打开签到确认页，无需登录。</p>
+                <img class="qr-image" src="{{ checkin_qr_image_url }}" alt="会员签到二维码">
+                <input class="form-control qr-link" type="text" value="{{ checkin_link }}" readonly>
+                <a class="btn btn-outline w-100" href="{{ checkin_page_url }}">打开签到页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

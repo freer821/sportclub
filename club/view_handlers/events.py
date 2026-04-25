@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from club.forms import EventForm
 from club.models import Event, Participation, SiteSettings, Transaction
+from club.services import CheckInError, register_user_for_event
 
 from .shared import ensure_profile, upcoming_events_queryset
 
@@ -22,7 +23,7 @@ def event_list(request):
     events = Event.objects.filter(date__gte=timezone.now())
     user_participations = Participation.objects.filter(
         user=request.user,
-        status="registered",
+        status__in=Participation.ACTIVE_STATUSES,
     ).values_list("event_id", flat=True)
     default_price = SiteSettings.get_default_price()
     return render(
@@ -40,62 +41,25 @@ def event_list(request):
 def join_event(request, event_id):
     logger.info(f"User {request.user.username} attempting to join event {event_id}")
     event = get_object_or_404(Event, id=event_id)
-    event_price = decimal.Decimal(event.event_price)
-
-    if event.date < timezone.now():
-        messages.error(request, "This event has already passed.")
-        return redirect("event_list")
-
-    if event.is_full:
-        messages.error(request, "This event is full.")
-        return redirect("event_list")
-
-    with transaction.atomic():
-        profile = ensure_profile(request.user)
-        participation = Participation.objects.filter(
-            user=request.user,
-            event=event,
-        ).first()
-
-        if participation and participation.status == "registered":
-            messages.warning(request, "You are already registered for this event.")
-            return redirect("event_list")
-
-        if profile.balance < event_price:
-            messages.error(
-                request,
-                f"Insufficient balance. You need at least {event_price}EUR to join.",
-            )
+    try:
+        result = register_user_for_event(request.user, event)
+    except CheckInError as exc:
+        messages.error(request, str(exc))
+        if "Insufficient balance" in str(exc):
             return redirect("recharge")
+        return redirect("event_list")
 
-        profile.balance -= event_price
-        profile.save(update_fields=["balance"])
-
-        if participation:
-            participation.status = "registered"
-            participation.save(update_fields=["status"])
-        else:
-            Participation.objects.create(
-                user=request.user,
-                event=event,
-                status="registered",
-            )
-
-        Transaction.objects.create(
-            user=request.user,
-            transaction_type="event_fee",
-            amount=event_price,
-            description=f"Event: {event.title}",
-            event=event,
-        )
+    if result.status == "already_joined":
+        messages.warning(request, "You are already registered for this event.")
+        return redirect("event_list")
 
     logger.info(
         f"User {request.user.username} joined event {event.title}, "
-        f"deducted {event_price}EUR"
+        f"deducted {result.balance_charged}EUR"
     )
     messages.success(
         request,
-        f"Successfully joined {event.title}! {event_price}EUR has been deducted.",
+        f"Successfully joined {event.title}! {result.balance_charged}EUR has been deducted.",
     )
     return redirect("event_list")
 
@@ -109,7 +73,7 @@ def leave_event(request, event_id):
     participation = Participation.objects.filter(
         user=request.user,
         event=event,
-        status="registered",
+        status=Participation.STATUS_REGISTERED,
     ).first()
 
     if not participation:
@@ -197,7 +161,7 @@ def event_participants(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     participants = Participation.objects.filter(
         event=event,
-        status="registered",
+        status__in=Participation.ACTIVE_STATUSES,
     ).select_related("user")
     return render(
         request,

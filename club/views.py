@@ -1,4 +1,5 @@
 from club.view_handlers import (
+    admin_member_checkin_qr_svg,
     admin_event_delete,
     admin_events,
     admin_member_edit,
@@ -15,6 +16,9 @@ from club.view_handlers import (
     home,
     join_event,
     leave_event,
+    member_checkin_qr_svg,
+    member_profile,
+    qr_checkin,
     quick_recharge,
     recharge,
     register,
@@ -22,6 +26,7 @@ from club.view_handlers import (
 )
 
 __all__ = [
+    "admin_member_checkin_qr_svg",
     "admin_event_delete",
     "admin_events",
     "admin_member_edit",
@@ -38,6 +43,9 @@ __all__ = [
     "home",
     "join_event",
     "leave_event",
+    "member_checkin_qr_svg",
+    "member_profile",
+    "qr_checkin",
     "quick_recharge",
     "recharge",
     "register",

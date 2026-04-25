@@ -17,9 +17,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'balance']
-    search_fields = ['user__username', 'user__email']
-    list_filter = ['balance']
+    list_display = ['user', 'membership_type', 'city', 'phone', 'balance', 'profile_updated_at']
+    search_fields = ['user__username', 'user__email', 'phone', 'city', 'nationality']
+    list_filter = ['membership_type', 'gender', 'city']
 
 
 @admin.register(Event)

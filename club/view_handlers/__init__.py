@@ -1,3 +1,4 @@
+from .checkin import admin_member_checkin_qr_svg, member_checkin_qr_svg, qr_checkin
 from .dashboard import dashboard, history
 from .events import (
     admin_event_delete,
@@ -9,7 +10,7 @@ from .events import (
     join_event,
     leave_event,
 )
-from .members import admin_member_edit, admin_members
+from .members import admin_member_edit, admin_members, member_profile
 from .public import home, register
 from .recharge import (
     admin_recharge,
@@ -21,6 +22,7 @@ from .recharge import (
 )
 
 __all__ = [
+    "admin_member_checkin_qr_svg",
     "admin_event_delete",
     "admin_events",
     "admin_member_edit",
@@ -37,6 +39,9 @@ __all__ = [
     "home",
     "join_event",
     "leave_event",
+    "member_checkin_qr_svg",
+    "member_profile",
+    "qr_checkin",
     "quick_recharge",
     "recharge",
     "register",

@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from club.models import Event, Participation, Transaction, UserProfile
 from club.forms import EventForm
+from club.services import build_checkin_token
 
 
 class RegistrationTests(TestCase):
@@ -18,6 +19,14 @@ class RegistrationTests(TestCase):
                 'email': 'newmember@example.com',
                 'first_name': 'New',
                 'last_name': 'Member',
+                'gender': 'male',
+                'date_of_birth': '1995-04-03',
+                'phone': '+49 151 123456',
+                'street_address': 'Mainzer Landstr. 10',
+                'postal_code': '60329',
+                'city': 'Frankfurt',
+                'nationality': 'China',
+                'membership_type': 'adult',
                 'password1': 'simple1',
                 'password2': 'simple1',
             },
@@ -26,7 +35,11 @@ class RegistrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         user = User.objects.get(username='newmember')
+        profile = UserProfile.objects.get(user=user)
         self.assertEqual(UserProfile.objects.filter(user=user).count(), 1)
+        self.assertEqual(profile.gender, 'male')
+        self.assertEqual(profile.city, 'Frankfurt')
+        self.assertEqual(profile.membership_type, 'adult')
 
     def test_register_allows_simple_password_when_length_requirement_is_met(self):
         response = self.client.post(
@@ -36,6 +49,14 @@ class RegistrationTests(TestCase):
                 'email': 'easyuser@example.com',
                 'first_name': 'Easy',
                 'last_name': 'User',
+                'gender': 'female',
+                'date_of_birth': '1998-05-06',
+                'phone': '0170123456',
+                'street_address': 'Bockenheimer Landstr. 5',
+                'postal_code': '60325',
+                'city': 'Frankfurt',
+                'nationality': 'Germany',
+                'membership_type': 'young_adult',
                 'password1': '123456',
                 'password2': '123456',
             },
@@ -44,6 +65,59 @@ class RegistrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(User.objects.filter(username='easyuser').exists())
+
+
+class MemberProfileTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='member',
+            password='StrongPass12345',
+            email='member@example.com',
+            first_name='Old',
+            last_name='Name',
+        )
+        self.client.login(username='member', password='StrongPass12345')
+
+    def test_member_can_update_profile(self):
+        response = self.client.post(
+            reverse('member_profile'),
+            {
+                'first_name': 'New',
+                'last_name': 'Member',
+                'email': 'newmember@example.com',
+                'gender': 'diverse',
+                'date_of_birth': '2000-01-02',
+                'phone': '+49 170 998877',
+                'street_address': 'Europa-Allee 1',
+                'postal_code': '60327',
+                'city': 'Frankfurt',
+                'nationality': 'China',
+                'membership_type': 'family',
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        profile = self.user.profile
+        self.assertEqual(self.user.first_name, 'New')
+        self.assertEqual(self.user.email, 'newmember@example.com')
+        self.assertEqual(profile.gender, 'diverse')
+        self.assertEqual(profile.city, 'Frankfurt')
+        self.assertEqual(profile.membership_type, 'family')
+
+    def test_staff_user_is_redirected_away_from_member_profile_page(self):
+        self.client.logout()
+        admin = User.objects.create_user(
+            username='admin',
+            password='StrongPass12345',
+            is_staff=True,
+        )
+        self.client.login(username='admin', password='StrongPass12345')
+
+        response = self.client.get(reverse('member_profile'))
+
+        self.assertRedirects(response, reverse('dashboard'))
 
 
 class EventFlowTests(TestCase):
@@ -93,6 +167,133 @@ class EventFlowTests(TestCase):
             Transaction.objects.filter(user=self.user, event=self.event, transaction_type='event_fee').count(),
             1,
         )
+
+
+class QRCheckInTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='qmember',
+            password='StrongPass12345',
+            first_name='QR',
+            last_name='Member',
+        )
+        self.profile = UserProfile.objects.get(user=self.user)
+        self.profile.balance = Decimal('25.00')
+        self.profile.save(update_fields=['balance'])
+        now = timezone.now()
+        self.started_event = Event.objects.create(
+            title='Started Match',
+            description='ongoing',
+            location='Gym A',
+            date=now - timezone.timedelta(minutes=30),
+            end_time=now + timezone.timedelta(hours=1),
+            max_participants=20,
+            price=Decimal('6.00'),
+        )
+        self.future_event = Event.objects.create(
+            title='Future Match',
+            description='future',
+            location='Gym B',
+            date=now + timezone.timedelta(hours=2),
+            end_time=now + timezone.timedelta(hours=4),
+            max_participants=20,
+            price=Decimal('6.00'),
+        )
+        self.token = build_checkin_token(self.user)
+
+    def test_qr_checkin_page_lists_started_events_only(self):
+        response = self.client.get(reverse('qr_checkin'), {'token': self.token})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Started Match')
+        self.assertNotContains(response, 'Future Match')
+
+    def test_qr_checkin_creates_attended_participation_and_fee(self):
+        response = self.client.post(
+            reverse('qr_checkin'),
+            {'token': self.token, 'event': self.started_event.id},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        participation = Participation.objects.get(user=self.user, event=self.started_event)
+        self.profile.refresh_from_db()
+        self.assertEqual(participation.status, Participation.STATUS_ATTENDED)
+        self.assertEqual(self.profile.balance, Decimal('19.00'))
+        self.assertEqual(
+            Transaction.objects.filter(
+                user=self.user,
+                event=self.started_event,
+                transaction_type='event_fee',
+            ).count(),
+            1,
+        )
+
+    def test_qr_checkin_marks_existing_registration_without_duplicate_fee(self):
+        Participation.objects.create(
+            user=self.user,
+            event=self.started_event,
+            status=Participation.STATUS_REGISTERED,
+        )
+        Transaction.objects.create(
+            user=self.user,
+            event=self.started_event,
+            transaction_type='event_fee',
+            amount=Decimal('6.00'),
+            description='Event: Started Match',
+        )
+
+        response = self.client.post(
+            reverse('qr_checkin'),
+            {'token': self.token, 'event': self.started_event.id},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        participation = Participation.objects.get(user=self.user, event=self.started_event)
+        self.profile.refresh_from_db()
+        self.assertEqual(participation.status, Participation.STATUS_ATTENDED)
+        self.assertEqual(self.profile.balance, Decimal('25.00'))
+        self.assertEqual(
+            Transaction.objects.filter(
+                user=self.user,
+                event=self.started_event,
+                transaction_type='event_fee',
+            ).count(),
+            1,
+        )
+
+    def test_member_can_fetch_personal_checkin_qr_svg(self):
+        self.client.login(username='qmember', password='StrongPass12345')
+
+        response = self.client.get(reverse('member_checkin_qr_svg'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/svg+xml')
+        self.assertIn('<svg', response.content.decode('utf-8'))
+
+    def test_qr_checkin_allows_insufficient_balance_and_records_pending_fee(self):
+        self.profile.balance = Decimal('2.00')
+        self.profile.save(update_fields=['balance'])
+
+        response = self.client.post(
+            reverse('qr_checkin'),
+            {'token': self.token, 'event': self.started_event.id},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.profile.refresh_from_db()
+        participation = Participation.objects.get(user=self.user, event=self.started_event)
+        tx = Transaction.objects.get(
+            user=self.user,
+            event=self.started_event,
+            transaction_type='event_fee',
+        )
+        self.assertEqual(participation.status, Participation.STATUS_ATTENDED)
+        self.assertEqual(self.profile.balance, Decimal('2.00'))
+        self.assertEqual(tx.status, 'pending')
+        self.assertIn('待补缴 6.00EUR', tx.note)
 
 
 class AdminRechargeTests(TestCase):
