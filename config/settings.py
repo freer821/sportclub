@@ -2,6 +2,11 @@ import os
 from pathlib import Path
 import logging
 
+
+def _split_env_list(name, default=''):
+    value = os.environ.get(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
@@ -9,6 +14,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = _split_env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://rc2025.frank-geng.de,http://localhost,http://127.0.0.1,https://localhost,https://127.0.0.1',
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
